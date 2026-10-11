@@ -73,26 +73,15 @@ raised from Nx's default of no bump to a patch bump. Release commits
 (`chore(release): …`) are ignored. Changelog sections are Features, Fixes,
 Performance and Breaking Changes. Other types are hidden.
 
-## First release: 0.1.0
+## The first release
 
-`packages/runtime/package.json` is already at `0.1.0`, and nothing is tagged
-or published yet. Do not let conventional commits pick the first version. The
-history includes a breaking `feat!:` commit, so a plain run would go to 0.2.0
-(this was confirmed with a dry run).
-
-1. Create the npm organisation `mimic-js` on npmjs.com, so the `@mimic-js`
-   scope exists, and add the `NPM_TOKEN` secret (see [Secrets](#secrets-and-settings)).
-2. Go to **Actions → Release → Run workflow** on `main` and set:
-   - **specifier:** `0.1.0`
-   - **first-release:** checked
-3. The run keeps the version at 0.1.0, creates `packages/runtime/CHANGELOG.md`,
-   commits `chore(release): publish 0.1.0`, tags `v0.1.0`, pushes, creates the
-   GitHub release, and publishes `@mimic-js/runtime@0.1.0` with provenance.
-
-The first changelog entry covers every runtime-touching `feat`, `fix` and
-`perf` commit since the start of the repository, which is several hundred
-entries. You can shorten the GitHub release text afterwards. To shorten
-`CHANGELOG.md`, commit an edit; later releases only prepend to it.
+`0.1.0` was released on 2026-10-11 with the specifier `0.1.0` and
+**first-release** checked. The specifier was needed: the history already held
+breaking `feat!:` commits, so conventional commits would have chosen 0.2.0.
+Its changelog entry lists site-only commits under the runtime's features,
+because they touched root files (`README.md`, `assets/`, the lockfile); a
+later commit may trim `CHANGELOG.md`, and the GitHub release text can be
+edited in place.
 
 ## Later releases
 
@@ -104,9 +93,29 @@ Prereleases: the specifiers `prerelease`, `prepatch`, `preminor` and
 `premajor` produce versions like `0.1.1-0`. The workflow publishes any version
 containing `-` under the npm dist-tag `next` instead of `latest`.
 
+### Staged publishing
+
+npm may accept a publish into its staged queue instead of publishing it
+directly: a new package, or a token without the right to publish past 2FA,
+goes there. The workflow cannot tell the difference, since `pnpm publish`
+reports success either way, and for a new package the registry shows a
+public placeholder version `0.0.0-stage` (the `0.1.0` publish went this way,
+which is why that placeholder exists). The real version is installable only
+once a maintainer approves it with 2FA:
+
+```sh
+pnpm login
+pnpm stage list @mimic-js/runtime
+pnpm stage approve <stage-id>
+```
+
+So after every run, check `npm view @mimic-js/runtime version dist-tags`. A
+staged version keeps its number: do not rerun the workflow with
+**publish-only** to "retry" it, approve or reject it instead. Trusted
+publishing (below) publishes directly.
+
 If versioning succeeded but publishing failed, rerun the workflow with
-**publish-only** checked. Also check **first-release** if the failed run was
-the first release. This only works while the release commit is still the head
+**publish-only** checked. This only works while the release commit is still the head
 of `main`. If other commits have landed since, publish from a checkout of the
 tag by running `pnpm exec nx release publish` with `NODE_AUTH_TOKEN` set.
 
@@ -115,7 +124,7 @@ tag by running `pnpm exec nx release publish` with `NODE_AUTH_TOKEN` set.
 | Where | What |
 | --- | --- |
 | npmjs.com | The organisation `mimic-js`, which owns the `@mimic-js` scope. It must exist before the first publish. |
-| npmjs.com | A **granular access token**: *Packages and scopes → Read and write*, limited to the `@mimic-js` scope (or the organisation `mimic-js`). It must be allowed to publish without 2FA prompts, which is what npm's "automation"/bypass-2FA option is for. Give it the shortest expiry you are happy to rotate. |
+| npmjs.com | A **granular access token**: *Packages and scopes → Read and write*, limited to the `@mimic-js` scope (or the organisation `mimic-js`). It must be allowed to publish without 2FA prompts, which is what npm's "automation"/bypass-2FA option is for; without it, every publish lands in the [staged queue](#staged-publishing). Give it the shortest expiry you are happy to rotate. |
 | GitHub repository secret `NPM_TOKEN` | That token. The workflow passes it to pnpm as `NODE_AUTH_TOKEN`, through the `.npmrc` that `actions/setup-node` writes. |
 | GitHub repository secret `RELEASE_TOKEN` (optional) | Needed only if a branch protection rule or ruleset on `main` rejects direct pushes from `GITHUB_TOKEN`. Use a GitHub App installation token or a fine-grained PAT with *Contents: read and write* on `mimic-js/mimic`, and add that actor to the rule's bypass list. When the secret is absent, the workflow uses `GITHUB_TOKEN`. |
 
@@ -162,10 +171,7 @@ on its own and adds provenance automatically.
 From the repository root:
 
 ```sh
-# First release: what the workflow will do with specifier 0.1.0 + first-release
-pnpm run release:dry-run 0.1.0 --first-release
-
-# Once a v* tag exists (fetch tags first: git fetch --tags)
+# What the next release would do (fetch tags first: git fetch --tags)
 pnpm run release:dry-run
 pnpm run release:dry-run minor
 
@@ -173,13 +179,12 @@ pnpm run release:dry-run minor
 pnpm exec nx release --printConfig=debug
 
 # What would be published (builds the package and lists the tarball)
-pnpm exec nx release publish --dry-run --first-release
+pnpm exec nx release publish --dry-run
 ```
 
 `release:dry-run` prints the version change, the changelog entry and the git
-commands. It changes nothing on disk. Without a `v*` tag, the plain form fails
-with "Unable to determine the previous git tag" until `--first-release` is
-added. That is expected before 0.1.0.
+commands. It changes nothing on disk. If it fails with "Unable to determine
+the previous git tag", the tags are not fetched.
 
 `release.git` is set in `nx.json` for the top-level `nx release` command.
 Because of that, Nx refuses to run the `nx release version` and
