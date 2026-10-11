@@ -52,7 +52,7 @@ what it started.
 | --- | --- | --- |
 | `workdir` | `/home/project` | The working directory: where `fs.mount()` mounts, what relative paths resolve against, and the `cwd` of `spawn()`. It must be a canonical absolute POSIX path (no trailing slash, `.` or `..`), or `boot()` throws a `TypeError`. |
 | `embedderPolicy` | `require-corp` | The `Cross-Origin-Embedder-Policy` your page is served with. Documents of Published Endpoints are served with the same policy, so that a preview may load what its page may. |
-| `previewOrigin` | the page's origin | The origin Published Endpoints and the runtime are served from, such as `https://preview.example`, so that a project's code cannot reach your page's storage, cookies or DOM. A wildcard such as `https://*.preview.example` serves each endpoint from the root of an origin of its own. See [the preview origin](/docs/installation#running-the-container-on-a-preview-origin). |
+| `previewOrigin` | the page's origin | The origin Published Endpoints and the runtime are served from, such as `https://preview.example`, so that a project's code cannot reach your page's storage, cookies or DOM. A wildcard such as `https://*.preview.example` serves each endpoint from the root of an origin of its own. See [the preview origin](/docs/installation#running-untrusted-projects-on-a-preview-origin). |
 
 A wildcard `previewOrigin` must be an http(s) origin whose first hostname
 label is `*`; any other value that is not an origin without a path throws a

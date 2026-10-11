@@ -29,27 +29,27 @@ const server = await container.spawn('node', ['server.mjs']);
 const HOW_IT_WORKS: readonly { readonly title: string; readonly body: string }[] = [
   {
     title: 'Web Workers over one file system',
-    body: 'Each process runs in a Web Worker. They share one in-memory, POSIX-like file system with symlinks, file descriptors and watches, which lasts as long as the container.'
+    body: 'Each process is a Web Worker. All of them share one in-memory, POSIX-like file system.'
   },
   {
     title: 'Real package managers',
-    body: 'npm, pnpm and Yarn are the pinned upstream CLIs, run as ordinary processes. They install real packages from the npm registry; packages with native code get their publishers’ WebAssembly builds.'
+    body: 'npm, pnpm and Yarn are the upstream CLIs, installing real packages from the npm registry.'
   },
   {
     title: 'Ports become URLs',
-    body: 'When a program listens on a port, the port is published as a URL that a page can load in an iframe or request with container.endpoints.fetch(). HTTP streams and WebSockets work.'
+    body: 'A server a program starts becomes a URL for an iframe, with streaming HTTP and WebSockets.'
   },
   {
     title: 'WASI for native tooling',
-    body: 'WASI Preview 1 programs run as commands and through node:wasi, so esbuild, Rspack, Rolldown, Lightning CSS and Rollup run from their publishers’ WebAssembly builds.'
+    body: 'Tools with native code, such as esbuild and Rollup, run from their publishers’ WebAssembly builds.'
   },
   {
     title: 'A POSIX shell subset',
-    body: 'sh -c runs package scripts: pipes, redirection, &&, ||, $(...), globs, if, for, while and case, with PATH lookup of package bins. Here-documents and shell functions are not supported.'
+    body: 'sh -c runs package scripts: pipes, redirection, &&, globs and control flow.'
   },
   {
     title: 'Node 22 on linux',
-    body: 'Programs see Node 22 on linux: process.version and process.platform report it, so packages take the code paths they already have for Node on linux.'
+    body: 'Programs see Node 22 on linux, so packages take the code paths they already have.'
   }
 ];
 
