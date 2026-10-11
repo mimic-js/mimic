@@ -24,69 +24,51 @@ Mimic runs Node.js programs in Web Workers over a shared, in-memory virtual file
 system. Its package managers (npm, pnpm and Yarn, the real upstream CLIs) install
 real packages from the npm registry, and when a program starts an HTTP or
 WebSocket server, its port is published as a URL that your page can load in an
-iframe. Programs see a Node 22 on `linux`, and `process.versions.webcontainer` is
-set, so packages take the code paths they already have for a browser-hosted Node.
+iframe. Programs see Node 22 on `linux`.
 
-It is an independent, open-source implementation of the idea behind StackBlitz
-WebContainers, with a similar API shape. It is not affiliated with StackBlitz.
+## How it compares
+
+Three ways to run a user's Node.js project from a web app:
+
+| | Cloud VM or container | Proprietary in-browser runtime (WebContainers) | Mimic |
+| --- | --- | --- | --- |
+| Licence | A hosted service's terms, or infrastructure you run | The vendor's licence and terms | MIT: self-hosted, no API key, no usage limits |
+| Where the project runs | A remote machine per user | The user's browser tab, with the runtime served by its vendor | The user's browser tab, served from your own origin |
+| Startup | Provision or wake a machine | No machine to provision; installs run on the user's CPU | No machine to provision; installs run on the user's CPU |
+| Server cost per user | A machine per active user | None beyond hosting the page | None beyond hosting the page |
+| Isolation | A VM or container boundary | The browser's sandbox | A cross-origin-isolated tab, optionally with a separate [preview origin](packages/runtime/README.md#running-the-container-on-a-preview-origin) |
+| Limits | Anything Linux runs, Docker included | No native binaries without a WebAssembly build, a tab's memory, no Docker | No native binaries without a WebAssembly build, a tab's memory, no Docker |
+
+Mimic is MIT-licensed and hosted by you, with no API key, usage limits or terms
+that restrict commercial use. The project's files, processes and development
+server stay in the user's tab and nothing is uploaded to a third-party service:
+only package downloads from the public npm registry and the project's own
+outbound requests leave the browser, which matters for private code and for
+compliance.
 
 ## Capabilities
 
-Each item below comes from an [ADR](docs/adr/), a Compatibility Claim in
-[`packages/runtime/tests/e2e/`](packages/runtime/tests/e2e/) or the runtime's
-source.
+- **Node.js runtime**: Node 22 on `linux`, ES modules and CommonJS, the common builtins,
+  `child_process` with `fork`, `worker_threads`, and `node:sqlite` on WebAssembly SQLite.
+- **Virtual file system**: one in-memory, POSIX-like file system shared by every process,
+  mounted and exported as a tree, ZIP or TAR; only the compile and install caches persist.
+- **Shell**: `sh -c` and shell scripts as package scripts use them, with common commands such
+  as `ls`, `cp` and `sed`; no here-documents, functions or `[[ ]]`.
+- **Package managers**: the upstream npm 11, pnpm 11 and Yarn 4 CLIs (or the project's
+  `packageManager` release); packages with native code get their publishers' WebAssembly builds.
+- **WebAssembly and WASI**: WASI Preview 1 programs and `node:wasi`; publisher WebAssembly
+  builds of esbuild, Rspack, Rolldown, oxc-parser, Lightning CSS and Rollup.
+- **Networking**: published ports with streaming HTTP, WebSockets and cookies; outbound HTTP,
+  HTTPS and WebSocket through the browser; an optional preview origin.
+- **Tooling**: TypeScript, Prettier, ESLint, Sass, Vitest, Jest, Tailwind CSS, webpack and
+  Rollup; Express, Fastify, Koa, Hono, NestJS, Socket.IO and `ws`.
+- **Frameworks and toolchains**: Vite 6 to 8 with HMR for React, Vue, Svelte and Solid, the
+  Angular CLI, Astro and SvelteKit; the playground also runs Nx, Rsbuild, Eleventy and more.
+- **Compatibility evidence**: Playwright Compatibility Claims, run in Chromium in CI against
+  exact lockfiles; see [`docs/compatibility-status.md`](docs/compatibility-status.md).
 
-**Node.js runtime**
-- Node 22.22.3 on `linux`/`wasm32`; `process.versions.webcontainer` reports the package version ([ADR-0039](docs/adr/0039-report-linux-as-the-node-platform.md), [ADR-0045](docs/adr/0045-report-the-webcontainer-runtime-version.md)).
-- ES modules and CommonJS with Node semantics: one module registry per context, Node module identities, `--import`/`--require` preloads and `node:module` customization hooks.
-- Builtins include `fs`, `path`, `events`, `stream`, `buffer`, `crypto`, `zlib`, `util`, `url`, `os`, `http`, `https`, `net`, `child_process`, `worker_threads`, `async_hooks`, `readline`, `timers`, `vm`, `module` and `wasi`. Pure builtins come from maintained ports ([ADR-0026](docs/adr/0026-take-pure-node-builtins-from-maintained-ports.md)). `dns`, `tls` and `http2` report the limits of a browser.
-- `node:sqlite` runs real SQLite compiled to WebAssembly, and its databases are SQLite files on the virtual file system ([ADR-0017](docs/adr/0017-back-node-sqlite-with-sqlite-webassembly.md)).
-- `child_process`: `spawn`, synchronous `spawnSync` and `execFileSync` for JavaScript and WASI children, and `fork` with an IPC channel ([ADR-0036](docs/adr/0036-carry-a-forked-process-ipc-channel-over-the-port-relay.md)).
-- `worker_threads`, including inline workers and `receiveMessageOnPort` ([ADR-0025](docs/adr/0025-use-one-synchronous-channel.md)).
-- `AsyncLocalStorage` context follows awaits, promise reactions and scheduled callbacks ([ADR-0018](docs/adr/0018-carry-async-context-through-compiled-continuations.md)).
-- Each module is compiled once with Babel and cached in the origin private file system, shared across processes and reloads ([ADR-0023](docs/adr/0023-compile-once-with-babel-and-a-shared-compile-cache.md)).
-- The embedding page's main thread stays free of long tasks while npm installs.
-
-**Virtual file system**
-- One in-memory, POSIX-like file system shared by every process: stats, symlinks, file descriptors that survive rename and unlink, atomic rename, and recursive watches.
-- `fs.mount()` takes a file tree or a ZIP or TAR archive; `fs.export()` returns a JSON tree, ZIP or TAR, with metadata and symlinks.
-- The file system lasts as long as the container. Only the Compile Cache and the package-manager artifact cache persist (in the origin private file system).
-
-**Shell**
-- `sh -c` and shell scripts for package scripts: `&&`, `||`, `;`, pipes, `<`, `>`, `>>`, descriptor redirection (`2>&1`, `2>/dev/null`), background jobs and `wait`, `$(...)` substitution, `${VAR:-default}`, globs, quoting, subshells, `if`, `for`, `while` and `case`.
-- Builtins such as `cd`, `export`, `unset`, `set -e`/`-u`/`-x`/`-o pipefail`, `test`/`[`, `echo`, `printf`, `read`, `source`, `exec`, `command`, `kill`; and `ls`, `cat`, `cp`, `mv`, `rm`, `mkdir`, `touch`, `env`, `which`, `dirname`, `basename`, `uname` and `sed` as programs.
-- `PATH` lookup of package bins, `#!/usr/bin/env node`, `#!/bin/sh` and `env -S` shebangs, and status 127 for an unknown command.
-- Not supported: here-documents, shell functions, `[[ ]]`, arrays, process substitution and `&>`.
-
-**Package managers**
-- npm 11.18.0, pnpm 11.11.0 and Yarn 4.17.1, each the pinned upstream CLI run as an ordinary process with its arguments untouched (a Command Proxy, [ADR-0021](docs/adr/0021-reduce-package-management-to-a-pinned-cli-and-a-replacement-map.md)). A project's `packageManager` field selects another release ([ADR-0041](docs/adr/0041-run-the-package-manager-release-a-project-asks-for.md)).
-- Frozen installs from exact lockfiles, including npm and pnpm workspaces and Yarn PnP.
-- Browser Package Replacements: packages with native code are swapped after install for their publishers' same-version browser builds (`esbuild` → `@esbuild/wasi-preview1`, `rollup` → `@rollup/wasm-node`, `lightningcss` → `lightningcss-wasm`, `@parcel/watcher` → `@parcel/watcher-wasm`).
-- NAPI-RS packages get their same-version `wasm32-wasi` binding installed as a companion ([ADR-0028](docs/adr/0028-install-wasi-bindings-as-companions-from-napi-metadata.md)).
-- A `node-gyp` build ends without the native addon instead of failing the install ([ADR-0040](docs/adr/0040-let-a-native-addon-build-end-without-the-addon.md)).
-
-**WebAssembly and WASI**
-- WASI Preview 1 programs, as commands and through `node:wasi`, with the virtual file system preopened.
-- Publisher WASI/WASM builds proven: esbuild, Rspack, Rolldown, oxc-parser, Lightning CSS ([ADR-0012](docs/adr/0012-replace-lightning-css-with-its-publisher-wasm-sibling.md), now ADR-0021), Rollup.
-
-**Networking**
-- A server's listening port is published as a URL; `container.endpoints.fetch()` requests it from the page.
-- HTTP with streaming bodies, WebSockets and a per-endpoint cookie jar with `document.cookie` ([ADR-0024](docs/adr/0024-deliver-published-http-as-structured-requests.md), [ADR-0038](docs/adr/0038-serve-a-published-websocket-from-its-process-worker.md)).
-- A published page's requests to `localhost` ports reach the container's other servers ([ADR-0037](docs/adr/0037-route-a-documents-loopback-requests-to-its-containers-ports.md)).
-- Outbound HTTP, HTTPS and WebSocket from programs, through the browser's network stack.
-- An optional preview origin keeps a project's code off your page's origin, and a wildcard preview origin serves each endpoint from the root of an origin of its own, as client-side routers need ([ADR-0032](docs/adr/0032-serve-published-endpoints-from-a-preview-origin.md), [ADR-0044](docs/adr/0044-serve-each-published-endpoint-from-an-origin-of-its-own.md)).
-
-**Tooling with Compatibility Claims**
-- TypeScript 6, Prettier, ESLint, Sass, Vitest, Jest, Tailwind CSS 4, webpack 4 and 5 with webpack-dev-server, Rollup 3 and 4, `@parcel/watcher`.
-- Vite 6, 7 and 8 development servers with upstream HMR for React, Vue, Svelte and Solid; Angular 21 and 22 through the Angular CLI; Astro; SvelteKit.
-- Express, Fastify, Koa, Hono, NestJS, GraphQL Yoga, Socket.IO and `ws`.
-
-**Stacks the playground runs**
-- Vite templates (React, Vue, Svelte, Solid, Lit, Preact, vanilla TypeScript, Phaser); Angular CLI 16 and 21 (`ng new`, `ng serve`); TodoMVC (Angular, React, Vue, Svelte); Redux Toolkit; TanStack Query; react-scripts and webpack-dev-server; SvelteKit, Svelte with Rollup, Sapper; Solid and SolidStart; Astro; Rspack and Rsbuild; Nx 20 (`create-nx-workspace`, `nx serve`); Rollup; Eleventy; NestJS; Koa; Hono.
-- Angular and Nx routing need the wildcard preview origin, which the playground uses in development.
-
-**Compatibility evidence**
-- What works is defined by Playwright Compatibility Claims, each with an id and a statement, run in Chromium in CI against exact lockfiles. See [`docs/compatibility-status.md`](docs/compatibility-status.md).
+Decisions behind these: see [`docs/adr/`](docs/adr/). The full lists of builtins, shell
+features and claimed packages are in the ADRs and in [`packages/runtime/tests/e2e/`](packages/runtime/tests/e2e/).
 
 ## Quick start
 

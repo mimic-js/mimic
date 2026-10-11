@@ -55,6 +55,14 @@
   color: var(--text);
 }
 
+/* In the playground's top bar: one line, at the end of the bar */
+.site-nav-compact {
+  flex: none;
+  flex-wrap: nowrap;
+  gap: 14px;
+  font-size: 13px;
+}
+
 .site-main {
   flex: 1;
   width: min(1080px, 100% - 32px);
@@ -172,21 +180,6 @@
   gap: 10px;
 }
 
-.experimental-note {
-  max-width: 46em;
-  margin: 8px 0 0;
-  padding: 10px 14px;
-  border: 1px solid #6b5a2a;
-  border-radius: 8px;
-  background: rgb(229 192 123 / 6%);
-  color: var(--text-muted);
-  font-size: 14px;
-}
-
-.experimental-note strong {
-  color: #e5c07b;
-}
-
 .landing-section {
   padding-top: 56px;
 }
@@ -232,8 +225,10 @@
 }
 
 .chip {
-  display: inline-block;
-  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 8px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface-raised);
@@ -247,6 +242,13 @@ a.chip:focus-visible {
   border-color: var(--accent);
   color: var(--accent);
   outline: none;
+}
+
+.stack-icon {
+  display: block;
+  flex: none;
+  width: 16px;
+  height: 16px;
 }
 
 .chip-static {

@@ -6,7 +6,7 @@ import { FileTree } from './FileTree';
 import { downloadRepository, repositoryFromSearch, type Repository } from './github-archive';
 import { Preview, usePublishedEndpoints } from './Preview';
 import { Terminals } from './Terminals';
-import { SiteMark } from '../site/SiteMark';
+import { SiteBrand, SiteNav } from '../site/SiteNav';
 import '@xterm/xterm/css/xterm.css';
 import './playground.css';
 
@@ -33,8 +33,9 @@ function RepositoryForm() {
   return (
     <div className="app">
       <header className="topbar">
-        <SiteMark />
+        <SiteBrand compact />
         <span className="example-name">Playground</span>
+        <SiteNav compact />
       </header>
       <main className="playground-home">
         <h1>Repository playground</h1>
@@ -121,7 +122,7 @@ function Playground({ repository, example }: PlaygroundProps) {
   return (
     <div className="app">
       <header className="topbar">
-        <SiteMark />
+        <SiteBrand compact />
         {repository ? (
           <>
             <a className="repository-link" href={`https://github.com/${title}`} target="_blank" rel="noreferrer">
@@ -135,6 +136,7 @@ function Playground({ repository, example }: PlaygroundProps) {
         )}
         {example?.partly && <PartlyBadge reason={example.partly} />}
         <RepositoryInput />
+        <SiteNav compact />
       </header>
       {session.phase === 'ready' ? (
         <Workspace

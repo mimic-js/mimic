@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { StackIcon } from './StackIcon';
 import { exampleTitle, playgroundStacks, tooling } from './stacks';
 
 const INSTALL = 'npm install @mimic-js/mimic';
@@ -48,7 +49,7 @@ const HOW_IT_WORKS: readonly { readonly title: string; readonly body: string }[]
   },
   {
     title: 'Node 22 on linux',
-    body: 'Programs see Node 22 on linux, and process.versions.webcontainer is set, so packages take the code paths they already have for a browser-hosted Node.'
+    body: 'Programs see Node 22 on linux: process.version and process.platform report it, so packages take the code paths they already have for Node on linux.'
   }
 ];
 
@@ -68,10 +69,6 @@ export function LandingPage() {
             Read the docs
           </Link>
         </div>
-        <p className="experimental-note" role="note">
-          <strong>Experimental.</strong> Mimic has been developed largely with AI assistance and is not recommended
-          for production use before 1.0. While it is 0.x, the API may change between minor versions.
-        </p>
       </section>
 
       <section className="landing-section" aria-labelledby="what-runs">
@@ -92,10 +89,14 @@ export function LandingPage() {
                         to={`/playground?${new URLSearchParams({ example: stack.example })}`}
                         title={exampleTitle(stack.example)}
                       >
+                        <StackIcon icon={stack.icon} label={stack.label} />
                         {stack.label}
                       </Link>
                     ) : (
-                      <span className="chip">{stack.label}</span>
+                      <span className="chip">
+                        <StackIcon icon={stack.icon} label={stack.label} />
+                        {stack.label}
+                      </span>
                     )}
                   </li>
                 ))}
@@ -106,8 +107,11 @@ export function LandingPage() {
             <h3>Tooling</h3>
             <ul className="chips">
               {tooling.map((tool) => (
-                <li key={tool}>
-                  <span className="chip chip-static">{tool}</span>
+                <li key={tool.label}>
+                  <span className="chip chip-static">
+                    <StackIcon icon={tool.icon} label={tool.label} />
+                    {tool.label}
+                  </span>
                 </li>
               ))}
             </ul>

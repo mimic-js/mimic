@@ -269,8 +269,8 @@ package bins on `PATH`, and scripts with a shebang. For a command line, use
   `TMPDIR=/tmp`, `USER` and `LOGNAME` (`browser`), and
   `PUPPETEER_SKIP_DOWNLOAD=1` and `CYPRESS_INSTALL_BINARY=0`, since no browser
   binary a package downloads could run.
-- `output` and `terminal` are accepted for compatibility with the
-  WebContainer API and have no effect yet: programs see no terminal, and
+- `output` and `terminal` are accepted and have no effect yet: programs see
+  no terminal, and
   `output` is always available. Set `FORCE_COLOR=1` in `env` for coloured
   output.
 

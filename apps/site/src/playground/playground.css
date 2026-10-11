@@ -148,6 +148,10 @@
   margin-left: auto;
 }
 
+.topbar .repository-input ~ .site-nav {
+  margin-left: 6px;
+}
+
 .repository-link,
 .example-name {
   color: var(--text);
@@ -446,8 +450,14 @@
     flex-wrap: wrap;
   }
 
+  /* The repository input takes a line of its own, under the navigation. */
   .topbar .repository-input {
+    order: 1;
     width: 100%;
+  }
+
+  .topbar .repository-input ~ .site-nav {
+    margin-left: auto;
   }
 
   .repository-ref {
