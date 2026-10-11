@@ -1,4 +1,4 @@
-import type { SimpleIcon } from 'simple-icons';
+import type { StackLogo } from './stack-logos';
 
 /** The chips' background (`--surface-raised`), which a brand colour must stand out from. */
 const CHIP_BACKGROUND = '1c202b';
@@ -21,7 +21,7 @@ function fill(hex: string): string {
 }
 
 /** A stack's logo, or a rounded square with its first letter for a stack Simple Icons has no logo for. */
-export function StackIcon({ icon, label }: { readonly icon: SimpleIcon | undefined; readonly label: string }) {
+export function StackIcon({ icon, label }: { readonly icon: StackLogo | undefined; readonly label: string }) {
   return (
     <svg className="stack-icon" viewBox="0 0 24 24" width={16} height={16} aria-hidden="true" focusable="false">
       {icon ? (

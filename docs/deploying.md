@@ -20,7 +20,7 @@ the first three come from `vercel.json`, which overrides the dashboard.
 | Environment variable `VITE_PREVIEW_ORIGIN` | the preview origin, see below; available at build time |
 | Framework Preset | Other (`"framework": null`) |
 | Install Command | `npx --yes pnpm@11.7.0 install --frozen-lockfile` |
-| Build Command | `npx --yes pnpm@11.7.0 nx run site:build` |
+| Build Command | `NODE_OPTIONS=--max-old-space-size=4096 npx --yes pnpm@11.7.0 nx run site:build` |
 | Output Directory | `apps/site/dist` |
 
 The workspace needs pnpm 11 (CI pins 11.7.0). Vercel picks pnpm 9 or 10 for
@@ -33,6 +33,9 @@ it too. The alternative is Corepack: a `packageManager` field in the root
 `package.json` and `ENABLE_EXPERIMENTAL_COREPACK=1` in the project.
 
 `nx run site:build` builds `@mimic-js/mimic` first (`^build`), then the site.
+The site bundles the Monaco editor, whose build peaks above 3 GB of memory,
+so `NODE_OPTIONS` raises Node's heap limit; without it the build stops with
+"JavaScript heap out of memory". CI sets the same variable.
 
 ### Headers
 

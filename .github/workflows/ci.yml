@@ -23,7 +23,10 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The site bundles the Monaco editor, which needs more heap than Node's default.
       - run: pnpm run test:build
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
 
   unit:
     name: unit contracts

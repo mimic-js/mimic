@@ -74,6 +74,9 @@ jobs:
           fi
 
       - name: Build and verify the package
+        # The site bundles the Monaco editor, which needs more heap than Node's default.
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
         run: |
           pnpm run test:build
           pnpm run test:unit

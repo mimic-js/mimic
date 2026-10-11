@@ -30,16 +30,16 @@ import {
   siVuedotjs,
   siWebpack,
   siYarn,
-  type SimpleIcon
-} from 'simple-icons';
+  type StackLogo
+} from './stack-logos';
 import { examples } from '../playground/examples';
 
 /**
  * A stack shown on the landing page; `example` opens it in the playground.
- * `icon` is its Simple Icons logo; without one (Simple Icons has no Phaser,
- * Rspack or Rsbuild) the chip shows a letter mark.
+ * `icon` is its logo from `./stack-logos`; without one (Simple Icons has no
+ * Phaser, Rspack or Rsbuild) the chip shows a letter mark.
  */
-export type Stack = { readonly label: string; readonly example?: string; readonly icon?: SimpleIcon };
+export type Stack = { readonly label: string; readonly example?: string; readonly icon?: StackLogo };
 
 export type StackGroup = { readonly title: string; readonly stacks: readonly Stack[] };
 
