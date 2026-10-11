@@ -5,7 +5,9 @@
   </picture>
 </p>
 
-<p align="center">Node.js programs, package managers and development servers, inside a browser tab.</p>
+<h3 align="center">A dev container. In your tab.</h3>
+
+<p align="center">Node.js, npm and your dev server, in the browser. No Docker, no cloud VM. Open source, MIT, self-hosted.</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@mimic-js/runtime"><img alt="npm" src="https://img.shields.io/npm/v/@mimic-js/runtime"></a>
@@ -20,11 +22,16 @@
 
 ## What it is
 
-Mimic is a Node.js runtime for the browser. Programs run in Web Workers over an
+Mimic is a browser-based runtime that executes Node.js applications and shell
+commands entirely inside a browser tab. Programs run in Web Workers over an
 in-memory file system, npm, pnpm and Yarn install real packages from the npm
 registry, and a server a program starts becomes a URL your page can load in an
-iframe. Nothing runs on your servers, and nothing leaves the browser but package
-downloads and the project's own requests.
+iframe. Workloads that used to need a cloud VM per user, such as installing
+packages, running a dev server or executing user code, run client-side instead,
+on the user's CPU, with nothing to provision and nothing leaving the browser but
+package downloads and the project's own requests. Mimic is open source under
+the MIT licence and served from your own origin: no vendor service, no API key,
+no usage limits.
 
 ## How it compares
 
