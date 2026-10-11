@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /playground?
+
+Sitemap: https://mimicjs.com/sitemap.xml

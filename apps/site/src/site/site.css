@@ -64,6 +64,12 @@
   margin: 0 auto;
 }
 
+.site-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
 .site-footer {
   display: flex;
   flex-wrap: wrap;
@@ -226,21 +232,26 @@
 }
 
 .hero-wordmark {
-  margin: 0;
-  line-height: 0;
+  display: block;
+  width: min(240px, 60vw);
+  height: auto;
+  margin: 0 0 6px;
 }
 
-.hero-wordmark img {
-  width: min(330px, 80vw);
-  height: auto;
+.hero-title {
+  margin: 0;
+  font-size: clamp(36px, 6vw, 60px);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
 }
 
 .hero-lede {
-  max-width: 34em;
+  max-width: 38em;
   margin: 0;
   color: var(--text);
-  font-size: 22px;
-  line-height: 1.4;
+  font-size: 19px;
+  line-height: 1.5;
 }
 
 .hero-actions {
@@ -249,13 +260,118 @@
   gap: 10px;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* The screenshot of the playground under the hero */
+
+.hero-shot {
+  margin: 32px 0 0;
+}
+
+.hero-shot a {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--terminal-background);
+  box-shadow: 0 24px 64px rgb(0 0 0 / 40%);
+}
+
+.hero-shot a:hover,
+.hero-shot a:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.hero-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hero-shot figcaption {
+  max-width: 60em;
+  margin: 12px 2px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
 .landing-section {
   padding-top: 56px;
+}
+
+.section-lede-wide {
+  max-width: 60em;
+  color: var(--text);
+  font-size: 17px;
+}
+
+/* The comparison table */
+
+.compare-scroll {
+  margin: 0 0 20px;
+  overflow-x: auto;
+}
+
+.compare {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.compare th,
+.compare td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.compare thead th {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.compare tbody th {
+  width: 20%;
+  color: var(--text);
+  font-weight: 550;
+}
+
+.compare td {
+  color: var(--text-muted);
+}
+
+.compare .compare-mimic {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  color: var(--text);
+}
+
+.compare thead .compare-mimic {
+  border-radius: 8px 8px 0 0;
+  color: var(--accent);
+}
+
+.compare tbody tr:last-child .compare-mimic {
+  border-radius: 0 0 8px 8px;
 }
 
 .landing-section h2 {
   margin: 0 0 8px;
   font-size: 24px;
+  scroll-margin-top: 72px;
 }
 
 .section-lede {
@@ -355,9 +471,51 @@ a.chip:focus-visible {
 
 .docs-layout {
   display: grid;
-  grid-template-columns: 180px minmax(0, 1fr);
+  grid-template-columns: 180px minmax(0, 1fr) 200px;
   gap: 48px;
   padding-top: 40px;
+}
+
+.docs-sidebar-heading {
+  margin: 18px 10px 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.docs-sidebar > .docs-sidebar-heading:first-child {
+  margin-top: 0;
+}
+
+/* The contents of the current page */
+
+.docs-toc {
+  position: sticky;
+  top: 76px;
+  display: grid;
+  align-self: start;
+  gap: 2px;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  font-size: 13px;
+}
+
+.docs-toc a {
+  padding: 3px 10px;
+  border-left: 1px solid var(--border);
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.docs-toc a[data-depth="3"] {
+  padding-left: 22px;
+}
+
+.docs-toc a:hover {
+  border-left-color: var(--text-muted);
+  color: var(--text);
 }
 
 .docs-sidebar {
@@ -506,13 +664,23 @@ a.chip:focus-visible {
   margin: 0 0 8px;
 }
 
+@media (max-width: 1100px) {
+  .docs-layout {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+
+  .docs-toc {
+    display: none;
+  }
+}
+
 @media (max-width: 720px) {
   .hero {
     padding-top: 40px;
   }
 
   .hero-lede {
-    font-size: 19px;
+    font-size: 17px;
   }
 
   .stack-groups,
@@ -526,10 +694,19 @@ a.chip:focus-visible {
     padding-top: 20px;
   }
 
+  .docs-toc {
+    display: none;
+  }
+
+  .docs-sidebar-heading {
+    display: none;
+  }
+
   .docs-sidebar {
     position: static;
     display: flex;
-    gap: 6px;
+    flex-wrap: wrap;
+    gap: 2px 6px;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--border);
   }

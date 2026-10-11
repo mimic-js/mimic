@@ -16,8 +16,9 @@ The repository is a pnpm workspace run by Nx
   [`README.md`](../packages/runtime/README.md) is the consumer guide: boot
   options, bundler integration and the headers a page needs.
 - `apps/site`: the site, a consumer of the built package. `/` is the landing
-  page; `/docs/installation` and `/docs/api` render the Markdown of
-  `src/docs/`; `/playground?repo=owner/name` (optional `&ref=`) opens a
+  page; `/docs/installation`, `/docs/api` and `/docs/faq` render the
+  Markdown of `src/docs/`;
+  `/playground?repo=owner/name` (optional `&ref=`) opens a
   public GitHub repository in an editor with a terminal over one `Mimic`, and
   `/playground?example=<id>` one of the demo-pool applications listed in
   `src/playground/examples.ts`, with the terminal in its directory and its

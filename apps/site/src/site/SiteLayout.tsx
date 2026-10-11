@@ -8,10 +8,13 @@ export function SiteLayout() {
       <SiteHeader />
       <Outlet />
       <footer className="site-footer">
-        <span>MIT licensed.</span>
-        <span>
-          Source on <a href={GITHUB_URL}>GitHub</a>.
-        </span>
+        <span>MIT licensed. Experimental while 0.x.</span>
+        <nav className="site-footer-links" aria-label="Elsewhere">
+          <a href={GITHUB_URL}>GitHub</a>
+          <a href="https://www.npmjs.com/package/@mimic-js/runtime">npm</a>
+          <a href={`${GITHUB_URL}/blob/main/packages/runtime/CHANGELOG.md`}>Changelog</a>
+          <a href={`${GITHUB_URL}/issues`}>Issues</a>
+        </nav>
       </footer>
     </div>
   );
