@@ -87,51 +87,51 @@ package README's "What this does and does not contain"). The site therefore
 boots with `previewOrigin` set from `VITE_PREVIEW_ORIGIN`, which Vite reads at
 build time: changing it needs a new build.
 
-### A wildcard on a separate domain (recommended)
+### A wildcard (the deployment)
 
 ```sh
-VITE_PREVIEW_ORIGIN=https://*.mimic-preview.dev
+VITE_PREVIEW_ORIGIN=https://*.mimicjs.com
 ```
 
 A wildcard serves each Published Endpoint from the root of an origin of its
 own ([ADR-0044](adr/0044-serve-each-published-endpoint-from-an-origin-of-its-own.md)),
-which client-side routers such as Angular's and Nx's need. The Runtime Host
-document, with the processes, the Compile Cache and the package-manager cache,
-runs on the wildcard's fixed label, `https://mimic.mimic-preview.dev`, and an
-endpoint of port 5173 on `https://<epoch>--5173.mimic-preview.dev/`.
+which client-side routers such as Angular's and Nx's need. The site is
+`https://mimicjs.com`; the Runtime Host document, with the processes, the
+Compile Cache and the package-manager cache, runs on the wildcard's fixed
+label, `https://mimic.mimicjs.com`, and an endpoint of port 5173 on
+`https://<epoch>--5173.mimicjs.com/`. The apex and `www` are the site's; every
+other label of the domain belongs to the previews, so host nothing else
+under it.
 
-Use an apex domain of its own for previews, such as `mimic-preview.dev`, rather
-than a subdomain of the site's domain (`*.preview.mimic-js.dev`). A project's
-code owns the preview origins: it can set cookies there, register Service
-Workers and host pages, and the package README says to host nothing else on
-them. Under the site's own registrable domain, those origins would be
-same-site with the site, so cookies scoped to the parent domain and
-same-site protections would cover them. A separate apex keeps them cross-site.
-As optional hardening, the preview domain can be listed on the
+The site and the previews share one registrable domain, so they are
+same-site: a project's code on an endpoint origin can set a cookie with
+`Domain=mimicjs.com`, which the browser then sends to the site, and the
+same-site protections between them do not apply. The site is static, with no
+account, session or API, so nothing is at stake today. Before the site gets
+any of those, move the previews to an apex domain of their own (for example
+`mimic-preview.com`), which keeps them cross-site: one variable and a
+redeploy. As optional hardening, a preview domain can be listed on the
 [Public Suffix List](https://publicsuffix.org/), which makes every
 `<epoch>--<port>` label a site of its own, so endpoints of different
 containers cannot share cookies either.
 
-To add the domains in Vercel:
+To set the domain up in Vercel:
 
-1. Move the preview domain's DNS to Vercel: set its nameservers at the
-   registrar to `ns1.vercel-dns.com` and `ns2.vercel-dns.com`. Vercel issues
-   certificates for a wildcard domain only when the domain uses its
-   nameservers.
-2. In the project's **Settings → Domains**, add the site's domain (for
-   example `mimic-js.dev`), the preview apex `mimic-preview.dev` and the
-   wildcard `*.mimic-preview.dev`. The wildcard certificate does not cover
-   the apex; the site uses only the wildcard's hostnames, so the apex may also
-   redirect to the site.
-3. Set `VITE_PREVIEW_ORIGIN=https://*.mimic-preview.dev` for the Production
+1. At the registrar, set the domain's nameservers to `ns1.vercel-dns.com`
+   and `ns2.vercel-dns.com`. Vercel issues certificates for a wildcard
+   domain only when the domain uses its nameservers.
+2. In the project's **Settings → Domains**, add `mimicjs.com`,
+   `www.mimicjs.com` (redirecting to the apex) and `*.mimicjs.com`. The
+   wildcard certificate does not cover the apex, which gets its own.
+3. Set `VITE_PREVIEW_ORIGIN=https://*.mimicjs.com` for the Production
    environment and redeploy.
 
 The same build must answer on every one of those hostnames, at the same
 paths: the site loads `runtime-host.html` and the package's workers from
-`mimic.mimic-preview.dev`, and each endpoint origin loads the package's
-Service Worker and `published-endpoint-origin.html` from itself. One Vercel
-project with all the domains assigned to it does that, and its headers apply
-on every hostname.
+`mimic.mimicjs.com`, and each endpoint origin loads the package's Service
+Worker and `published-endpoint-origin.html` from itself. One Vercel project
+with all the domains assigned to it does that, and its headers apply on every
+hostname.
 
 Preview deployments (Vercel's per-branch URLs) are built with their own
 environment's variables. Leave `VITE_PREVIEW_ORIGIN` unset for them, or
@@ -144,7 +144,7 @@ its own build's hashed paths, which another build does not have.
 Without wildcard DNS, one hostname works too:
 
 ```sh
-VITE_PREVIEW_ORIGIN=https://preview.mimic-js.dev
+VITE_PREVIEW_ORIGIN=https://preview.mimicjs.com
 ```
 
 Add that domain to the same project. Endpoints are then served under a
@@ -161,8 +161,8 @@ without isolating the projects the playground opens from the site.
 
 ## Checking a deployment
 
-- `curl -I https://mimic-js.dev/docs/api` returns `200` with the four headers.
-- `curl -I https://mimic.mimic-preview.dev/` returns the same headers.
+- `curl -I https://mimicjs.com/docs/api` returns `200` with the four headers.
+- `curl -I https://mimic.mimicjs.com/` returns the same headers.
 - In the playground, `/playground?example=vite8-react-ts` downloads the
   repository through `/github-archive`, installs, and shows the preview from
-  an `https://<epoch>--5173.mimic-preview.dev/` frame.
+  an `https://<epoch>--5173.mimicjs.com/` frame.
