@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import { StackIcon } from './StackIcon';
 import { exampleTitle, playgroundStacks, tooling } from './stacks';
+import { highlight } from './highlight';
 
 const INSTALL = 'npm install @mimic-js/runtime';
 
@@ -134,10 +135,10 @@ export function LandingPage() {
       <section className="landing-section" aria-labelledby="quick-start">
         <h2 id="quick-start">Quick start</h2>
         <pre className="code-block">
-          <code>{INSTALL}</code>
+          <code dangerouslySetInnerHTML={{ __html: highlight(INSTALL, 'sh') }} />
         </pre>
         <pre className="code-block">
-          <code>{QUICK_START}</code>
+          <code dangerouslySetInnerHTML={{ __html: highlight(QUICK_START, 'ts') }} />
         </pre>
         <p className="section-lede">
           The page that calls <code>boot()</code> must be cross-origin isolated: serve it with{' '}

@@ -117,6 +117,66 @@
   font-size: inherit;
 }
 
+/* Highlighted snippets (highlight.js token classes) */
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--text-muted);
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in,
+.hljs-type {
+  color: var(--accent);
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition {
+  color: #e3c98f;
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-symbol {
+  color: #f0ad6e;
+}
+
+.hljs-title,
+.hljs-title.function_,
+.hljs-title.class_ {
+  color: #b5c7f6;
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-property,
+.hljs-variable,
+.hljs-params {
+  color: #9ed6f2;
+}
+
+.hljs-tag,
+.hljs-name,
+.hljs-meta,
+.hljs-deletion {
+  color: #f09a8a;
+}
+
+.hljs-punctuation,
+.hljs-operator {
+  color: var(--text);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 600;
+}
+
 /* Buttons */
 
 .button {

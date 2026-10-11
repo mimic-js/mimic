@@ -4,6 +4,7 @@ import { Marked } from 'marked';
 import installation from '../docs/installation.md?raw';
 import api from '../docs/api.md?raw';
 import { NotFoundPage } from './NotFoundPage';
+import { highlight } from './highlight';
 
 const pages = {
   installation: { title: 'Installation', source: installation },
@@ -21,6 +22,12 @@ function render(source: string): string {
         const text = this.parser.parseInline(tokens);
         const id = slug(text.replace(/<[^>]+>/g, ''));
         return `<h${depth} id="${id}"><a class="heading-anchor" href="#${id}">${text}</a></h${depth}>\n`;
+      },
+      // Fenced code blocks are highlighted by their language tag.
+      code({ text, lang }) {
+        const language = lang?.trim().split(/\s+/)[0];
+        const className = language ? ` class="language-${language}"` : '';
+        return `<pre><code${className}>${highlight(text, language)}</code></pre>\n`;
       }
     }
   });
