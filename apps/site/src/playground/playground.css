@@ -142,7 +142,7 @@
   padding: 8px 12px;
 }
 
-.app .repository-input {
+.app .site-header .repository-input {
   flex: 0 1 280px;
   min-width: 120px;
   margin-left: auto;
@@ -153,7 +153,7 @@
   flex-wrap: nowrap;
 }
 
-.app .repository-input ~ .site-nav {
+.app .site-header .repository-input ~ .site-nav {
   margin-left: 12px;
 }
 
@@ -460,12 +460,12 @@
   }
 
   /* The repository input takes a line of its own, under the navigation. */
-  .app .repository-input {
+  .app .site-header .repository-input {
     order: 1;
     width: 100%;
   }
 
-  .app .repository-input ~ .site-nav {
+  .app .site-header .repository-input ~ .site-nav {
     margin-left: auto;
   }
 
