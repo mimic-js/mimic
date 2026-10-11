@@ -6,6 +6,12 @@
  * navigation is sent to the same path under the endpoint instead, the way a
  * server at the root of its own origin would receive it.
  *
+ * A worker's script is matched to a Service Worker by its URL, as a navigation
+ * is, not by the document that creates it, so a worker a development server
+ * names by a root-relative URL (Vite's `/node_modules/…?worker_file`) would be
+ * fetched from the embedding origin's server. Its script URL is moved under
+ * the endpoint the same way.
+ *
  * The function is serialized into the document runtime, so it uses nothing
  * outside its own body.
  */
@@ -42,12 +48,40 @@ export function installPublishedEndpointDocumentNavigationProgram(): void {
     } catch {
       return undefined;
     }
+    // A blob: or data: URL names no path of any server.
+    if (url.protocol !== documentWindow.location.protocol) return undefined;
     if (url.origin !== documentWindow.location.origin) return undefined;
     if (url.pathname === endpointPath || url.pathname.startsWith(`${endpointPath}/`)) return undefined;
     // Another endpoint of this container, or the worker's own files.
     if (url.pathname.startsWith(endpointsDirectory)) return undefined;
     return `${endpointPath}${url.pathname}${url.search}${url.hash}`;
   };
+
+  for (const name of ['Worker', 'SharedWorker'] as const) {
+    const NativeWorker = documentWindow[name];
+    if (typeof NativeWorker !== 'function') continue;
+    const EndpointWorker: typeof NativeWorker = new Proxy(NativeWorker, {
+      construct(target, args, newTarget) {
+        const [scriptUrl, ...rest] = args as [unknown, ...unknown[]];
+        let destination: string | undefined;
+        try {
+          destination = onEndpoint(new URL(String(scriptUrl), document.baseURI).href);
+        } catch {
+          destination = undefined;
+        }
+        return Reflect.construct(
+          target,
+          destination === undefined ? args : [destination, ...rest],
+          newTarget === EndpointWorker ? target : newTarget
+        ) as object;
+      }
+    });
+    Object.defineProperty(documentWindow, name, {
+      configurable: true,
+      writable: true,
+      value: EndpointWorker
+    });
+  }
 
   documentWindow.navigation?.addEventListener('navigate', (event) => {
     const navigate = event as NavigateEvent;

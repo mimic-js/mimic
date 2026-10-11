@@ -648,6 +648,33 @@ describe('NAPI-RS companions after an install', () => {
     expect(harness.fetched.slice(fetchedBefore)).toEqual([]);
   });
 
+  test('relink a companion a later install pruned while writing the same install state again', async () => {
+    const link = `${projectRoot}/node_modules/rolldown/node_modules/@rolldown/binding-wasm32-wasi`;
+    const installState = `${projectRoot}/node_modules/.package-lock.json`;
+    let installs = 0;
+    const harness = createHarness({
+      versions: { '@rolldown/binding-wasm32-wasi': ['1.2.12'] },
+      child: {
+        code: 0,
+        install(vfs) {
+          installs += 1;
+          if (installs === 1) installPackage(vfs, `${projectRoot}/node_modules/rolldown`, 'rolldown', '1.2.12', {}, { napi: rolldown });
+          else vfs.rmSync(`${projectRoot}/node_modules/rolldown/node_modules`, { recursive: true });
+          // npm writes its hidden lockfile on every install, with the same content when the packages it installed did not change.
+          vfs.writeFileSync(installState, '{"packages":{}}');
+          vfs.utimesSync(installState, 1_000 * installs);
+        }
+      }
+    });
+
+    expect(await harness.run('npm', ['ci'])).toBe(0);
+    expect(harness.vfs.existsSync(`${link}/package.json`)).toBe(true);
+    expect(await harness.run('npm', ['install'])).toBe(0);
+
+    expect(harness.vfs.existsSync(`${link}/package.json`)).toBe(true);
+    expect(harness.spawned.filter((request) => request.cwd !== projectRoot)).toHaveLength(1);
+  });
+
   test('report, instead of installing, a binding whose name the napi metadata derives invalidly', async () => {
     const harness = createHarness({
       versions: { '@rolldown/binding-wasm32-wasi': ['1.2.12'] },

@@ -35,6 +35,25 @@ export function isAllowedOptimizerReloadAbort(
     event.occurredAtMs <= lateDiscovery.completedAtMs;
 }
 
+/**
+ * Whether `event` is a request of a preview document that Vite's late-discovery
+ * reload replaced while the request was still open: the browser aborts it with
+ * the document, as the stack teardown accepts for any navigating document.
+ */
+export function isAbandonedByOptimizerReload(
+  event: BrowserNetworkEvent,
+  previewUrl: string,
+  lateDiscovery: LateDiscovery | null
+): boolean {
+  return lateDiscovery !== null &&
+    event.kind === 'request-failed' &&
+    event.error === 'net::ERR_ABORTED' &&
+    new URL(event.url).origin === new URL(previewUrl).origin &&
+    event.occurredAtMs >= lateDiscovery.startedAtMs &&
+    event.occurredAtMs <= lateDiscovery.completedAtMs &&
+    event.navigatedAway?.() === true;
+}
+
 export function findUnexpectedViteRequestFailures(
   events: readonly BrowserNetworkEvent[],
   expectedTransformErrorUrls: ReadonlySet<string>,
@@ -44,6 +63,7 @@ export function findUnexpectedViteRequestFailures(
   return events.filter((event) =>
     event.kind === 'request-failed' &&
     !(event.error === 'net::ERR_ABORTED' && expectedTransformErrorUrls.has(event.url)) &&
-    !isAllowedOptimizerReloadAbort(event, previewUrl, lateDiscovery)
+    !isAllowedOptimizerReloadAbort(event, previewUrl, lateDiscovery) &&
+    !isAbandonedByOptimizerReload(event, previewUrl, lateDiscovery)
   );
 }

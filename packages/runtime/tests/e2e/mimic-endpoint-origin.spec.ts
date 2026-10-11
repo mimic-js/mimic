@@ -1,5 +1,6 @@
 import { defineCompatibilityClaim } from './compatibility-claim';
 import { expect, test } from './compatibility-test';
+import { e2ePort } from './browser-runtime-helpers';
 
 const endpointOriginClaim = defineCompatibilityClaim({
   id: 'published-endpoint-origin-per-port-v1',
@@ -11,10 +12,10 @@ const endpointOriginClaim = defineCompatibilityClaim({
   }
 });
 
-// The claims run against http://127.0.0.1:4179; the same server answers on
-// every http://*.localhost:4179, which Chromium resolves to the loopback
+// The claims run against http://127.0.0.1:<port> (MIMIC_E2E_PORT, 4179 by
+// default); the same server answers on every http://*.localhost:<port>, which Chromium resolves to the loopback
 // address by itself, so each port gets an origin of its own (ADR-0044).
-const PREVIEW_ORIGIN = 'http://*.localhost:4179';
+const PREVIEW_ORIGIN = `http://*.localhost:${e2ePort}`;
 const ROUTER_PORT = 4200;
 const API_PORT = 3001;
 // Beside the Service Worker, which the development server serves from its source directory.
@@ -99,9 +100,9 @@ test(endpointOriginClaim.statement, async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.crossOriginIsolated)).toBe(true);
 
   const result = await page.evaluate(
-    async ({ previewOrigin, servers, routerPort, apiPort }) => {
+    async ({ previewOrigin, servers, routerPort, apiPort, port }) => {
       const { Mimic } = await import('/src/runtime/index.ts');
-      const invalid = await Mimic.boot({ previewOrigin: 'http://preview-*.localhost:4179' }).then(
+      const invalid = await Mimic.boot({ previewOrigin: `http://preview-*.localhost:${port}` }).then(
         () => 'resolved',
         (error: unknown) => (error instanceof TypeError ? error.message : 'rejected otherwise')
       );
@@ -131,7 +132,7 @@ test(endpointOriginClaim.statement, async ({ page }) => {
       const sibling = await runtime.endpoints.fetch(new URL('/hello?from=page', apiUrl), { cache: 'no-store' });
       const siblingText = await sibling.text();
       const foreign = await runtime.endpoints
-        .fetch(`${new URL(routerUrl).protocol}//other--${routerPort}.localhost:4179/`)
+        .fetch(`${new URL(routerUrl).protocol}//other--${routerPort}.localhost:${port}/`)
         .then(() => 'resolved', (error: unknown) => (error instanceof TypeError ? 'TypeError' : 'rejected otherwise'));
 
       const iframe = document.createElement('iframe');
@@ -162,16 +163,16 @@ test(endpointOriginClaim.statement, async ({ page }) => {
         pageCookie: document.cookie
       };
     },
-    { previewOrigin: PREVIEW_ORIGIN, servers: SERVERS, routerPort: ROUTER_PORT, apiPort: API_PORT }
+    { previewOrigin: PREVIEW_ORIGIN, servers: SERVERS, routerPort: ROUTER_PORT, apiPort: API_PORT, port: e2ePort }
   );
 
   expect(result.invalid).toContain('wildcard previewOrigin');
   // Each port is the root of an origin of its own, named by the epoch and the port.
   const routerOrigin = new URL(result.routerUrl);
   expect(routerOrigin.pathname).toBe('/');
-  expect(routerOrigin.host).toMatch(new RegExp(`^[0-9a-f-]{36}--${ROUTER_PORT}\\.localhost:4179$`));
+  expect(routerOrigin.host).toMatch(new RegExp(`^[0-9a-f-]{36}--${ROUTER_PORT}\\.localhost:${e2ePort}$`));
   const epochId = routerOrigin.hostname.split('--')[0];
-  expect(result.apiUrl).toBe(`http://${epochId}--${API_PORT}.localhost:4179/`);
+  expect(result.apiUrl).toBe(`http://${epochId}--${API_PORT}.localhost:${e2ePort}/`);
   expect(result.helloText).toBe('hello:POST:ping');
   // The project's Set-Cookie went to the Cookie Jar, not to the browser.
   expect(result.helloSetCookieExposed).toBe(false);

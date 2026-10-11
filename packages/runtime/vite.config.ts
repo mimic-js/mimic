@@ -12,7 +12,7 @@ import { mimic } from './src/vite';
  * origin per port (ADR-0044); the wildcard's headers cover both.
  */
 export default defineConfig({
-  plugins: [mimic({ previewOrigin: 'http://*.localhost:4179' })],
+  plugins: [mimic({ previewOrigin: `http://*.localhost:${process.env.MIMIC_E2E_PORT ?? 4179}` })],
   server: {
     // A published document's workers open their WebSockets on this origin
     // without the document's transport: Vite 8's client pings its server

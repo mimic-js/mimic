@@ -7,7 +7,9 @@ export type FixtureName = 'vanilla' | 'vanilla-vite7' | 'react' | 'solid' | 'typ
  * application. Claims that drive its fixture runner load it from its own
  * development server, which playwright.config.ts starts beside the test host.
  */
-export const documentationApplicationUrl = 'http://127.0.0.1:4180';
+/** The port the Playwright web server listens on; `MIMIC_E2E_PORT` moves it (playwright.config.ts). */
+export const e2ePort = Number(process.env.MIMIC_E2E_PORT ?? 4179);
+export const documentationApplicationUrl = `http://127.0.0.1:${e2ePort + 1}`;
 
 export const iframeSelector = 'iframe[title="Mimic preview"]';
 export const terminalSelector = '.terminal-panel pre';

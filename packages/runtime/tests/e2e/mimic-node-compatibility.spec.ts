@@ -151,7 +151,7 @@ test(nodeCompatibilityClaim.statement, async ({ page }) => {
   expect(result.first.exitCode, result.first.output).toBe(0);
   expect(JSON.parse(result.first.output.trim().split('\n').at(-1) ?? '')).toEqual({
     globalsBeforeEntry: true,
-    processIdentity: ['v22.22.3', 'browser', 'wasm32', '22.22.3', 'browser', 'wasm32'],
+    processIdentity: ['v22.22.3', 'linux', 'wasm32', '22.22.3', 'linux', 'wasm32'],
     bufferIdentity: true,
     urlIdentity: true,
     textCodecRoundtrip: 'mimic',

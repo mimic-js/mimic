@@ -12,6 +12,7 @@ import {
   hideBrowserWorkerGlobals,
   installCallSiteFileNames,
   installNodePerformanceCompatibility,
+  installNodeResponse,
   isNodeExitSignal,
   NodeCommand,
   projectInlineNodeEntry,
@@ -218,6 +219,7 @@ async function start(message: NodeProcessStart): Promise<void> {
     installNodePerformanceCompatibility();
     hideBrowserWorkerGlobals();
     installCallSiteFileNames();
+    installNodeResponse();
     const signalWaiters = new Set<(signal: ProcessSignal) => void>();
     // Resolves with the first signal sent after the call.
     const nextSignal = (): Promise<ProcessSignal> =>

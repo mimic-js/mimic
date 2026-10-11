@@ -23,6 +23,7 @@ import {
 import {
   assertDefaultViteConfigLoader,
   findUnexpectedViteRequestFailures,
+  isAbandonedByOptimizerReload,
   isAllowedOptimizerReloadAbort
 } from './vite-dev-suite-policy';
 import { expectRendered } from './vite-render';
@@ -212,7 +213,8 @@ function withoutResponseAnnotations(body: string): string {
 /**
  * Answers for what the test page reported while the server ran: the only
  * failures are the ones the workflow provokes with its transform error, and
- * the document Vite may abandon when a late dependency reloads the preview.
+ * the document Vite may abandon when a late dependency reloads the preview,
+ * with the requests that document still had open.
  */
 function expectViteDiagnostics(
   stack: Stack,
@@ -248,7 +250,8 @@ function expectViteDiagnostics(
         (event) =>
           (event.kind === 'request-failed' || event.status >= 400) &&
           !transformErrorUrls.has(event.url) &&
-          !reloadAborts.includes(event)
+          !reloadAborts.includes(event) &&
+          !isAbandonedByOptimizerReload(event, previewUrl, lateDiscovery)
       )
   ).toEqual([]);
   expect(findUnexpectedViteRequestFailures(network, transformErrorUrls, previewUrl, lateDiscovery)).toEqual([]);

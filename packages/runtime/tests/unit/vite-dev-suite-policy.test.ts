@@ -3,6 +3,7 @@ import { describe, expect, it, test } from 'vitest';
 import {
   assertDefaultViteConfigLoader,
   findUnexpectedViteRequestFailures,
+  isAbandonedByOptimizerReload,
   isAllowedOptimizerReloadAbort
 } from '../e2e/vite-dev-suite-policy';
 
@@ -82,4 +83,32 @@ test('transform-error URLs allow only aborted requests', () => {
       null
     )
   ).toEqual([failed]);
+});
+
+test('a late-discovery reload may abort only the requests of the document it replaced', () => {
+  const previewUrl = 'http://localhost/preview/';
+  const lateDiscovery = { startedAtMs: 100, completedAtMs: 300 };
+  const abandoned = {
+    kind: 'request-failed',
+    url: 'http://localhost/node_modules/.vite/deps/chunk-Q4AC2O6Z.js?v=240e57ae',
+    error: 'net::ERR_ABORTED',
+    occurredAtMs: 200,
+    navigatedAway: () => true
+  } as const;
+  const documentStayed = { ...abandoned, navigatedAway: () => false };
+  const withoutDocument = { kind: abandoned.kind, url: abandoned.url, error: abandoned.error, occurredAtMs: 200 };
+  const failed = { ...abandoned, error: 'net::ERR_FAILED' };
+  const beforeDiscovery = { ...abandoned, occurredAtMs: 99 };
+  const otherOrigin = { ...abandoned, url: 'http://elsewhere/chunk.js' };
+
+  expect(isAbandonedByOptimizerReload(abandoned, previewUrl, lateDiscovery)).toBe(true);
+  expect(isAbandonedByOptimizerReload(abandoned, previewUrl, null)).toBe(false);
+  expect(
+    findUnexpectedViteRequestFailures(
+      [abandoned, documentStayed, withoutDocument, failed, beforeDiscovery, otherOrigin],
+      new Set(),
+      previewUrl,
+      lateDiscovery
+    )
+  ).toEqual([documentStayed, withoutDocument, failed, beforeDiscovery, otherOrigin]);
 });

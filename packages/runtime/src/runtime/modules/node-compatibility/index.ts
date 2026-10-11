@@ -37,6 +37,7 @@ export {
 } from './execution-context-file-system';
 export { hideBrowserWorkerGlobals, installNodePerformanceCompatibility } from './perf-hooks';
 export { installCallSiteFileNames } from './call-sites';
+export { installNodeResponse } from './response-body';
 export { isNodeExitSignal } from './process-exit';
 export { configureSqliteEngineAssets } from './sqlite-engine-assets';
 export { createWorkerThreadSharedMemoryPool } from './worker-thread-shared-memory';

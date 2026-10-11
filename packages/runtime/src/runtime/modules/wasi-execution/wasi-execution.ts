@@ -1900,8 +1900,24 @@ function isSharedMemoryBuffer(buffer: ArrayBufferLike): buffer is SharedArrayBuf
   return Object.prototype.toString.call(buffer) === '[object SharedArrayBuffer]';
 }
 
+/**
+ * Whether a span lies inside the guest's memory. A shared memory that another
+ * thread grew can still show this thread its old length: V8 gives each other
+ * thread's Memory object the grown buffer only when that thread next handles
+ * an interrupt, and a thread woken inside WebAssembly can call an import
+ * first. A threaded binding's worker threads stat paths its main thread has
+ * just allocated, and an EFAULT there reads as a missing file. A span
+ * past the length this thread sees is checked again after `grow(0)`, which
+ * gives this thread's Memory object the memory's current buffer.
+ */
 function inBounds(memory: WebAssembly.Memory, pointer: number, length: number): boolean {
-  return Number.isInteger(pointer) && Number.isInteger(length) && pointer >= 0 && length >= 0 && pointer <= memory.buffer.byteLength - length;
+  if (!Number.isInteger(pointer) || !Number.isInteger(length) || pointer < 0 || length < 0) return false;
+  const seen: ArrayBufferLike = memory.buffer;
+  if (pointer <= seen.byteLength - length) return true;
+  // `grow(0)` would detach an unshared memory's buffer, whose length is never stale.
+  if (!isSharedMemoryBuffer(seen)) return false;
+  memory.grow(0);
+  return pointer <= memory.buffer.byteLength - length;
 }
 
 function encode(value: string): Uint8Array {

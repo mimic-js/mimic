@@ -556,17 +556,24 @@ async function requestedPackageManager(
 }
 
 /**
- * The manager's install-state file, by content: what an invocation changed
- * when it changed the installed packages. Content, not size and time, so a
- * rewrite within the same millisecond is seen too.
+ * The manager's install-state file, by identity, time and content: what an
+ * invocation changed when it ran an install. The content shows a rewrite
+ * within the same millisecond; the identity and time show an install that
+ * wrote the same content again, as npm does when it prunes what it did not
+ * install itself, such as a companion link.
  */
 async function installStamp(
   fileSystem: ProcessFileSystemClient,
   cwd: string,
   cli: PackageManagerCli
 ): Promise<string> {
-  const state = await fileSystem.readFile(`${cwd}/${cli.installState}`).catch(() => undefined);
-  return state ? digestHex(state) : 'absent';
+  const path = `${cwd}/${cli.installState}`;
+  const [status, state] = await Promise.all([
+    fileSystem.stat(path).catch(() => undefined),
+    fileSystem.readFile(path).catch(() => undefined)
+  ]);
+  if (!status || !state) return 'absent';
+  return `${status.ino}:${status.mtimeMs}:${await digestHex(state)}`;
 }
 
 async function digestHex(bytes: Uint8Array, algorithm = 'sha256'): Promise<string> {

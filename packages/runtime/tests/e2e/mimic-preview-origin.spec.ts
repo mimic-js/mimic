@@ -1,5 +1,6 @@
 import { defineCompatibilityClaim } from './compatibility-claim';
 import { expect, test } from './compatibility-test';
+import { e2ePort } from './browser-runtime-helpers';
 
 const previewOriginClaim = defineCompatibilityClaim({
   id: 'published-endpoint-preview-origin-v1',
@@ -11,9 +12,9 @@ const previewOriginClaim = defineCompatibilityClaim({
   }
 });
 
-// The claims run against http://127.0.0.1:4179; the same server answers on
-// http://localhost:4179, a different origin to the browser (ADR-0032).
-const PREVIEW_ORIGIN = 'http://localhost:4179';
+// The claims run against http://127.0.0.1:<port> (MIMIC_E2E_PORT, 4179 by
+// default); the same server answers on http://localhost:<port>, a different origin to the browser (ADR-0032).
+const PREVIEW_ORIGIN = `http://localhost:${e2ePort}`;
 
 test(previewOriginClaim.statement, async ({ page }) => {
   test.setTimeout(120_000);

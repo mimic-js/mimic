@@ -77,7 +77,12 @@ test(synchronousVfsMailboxClaim.statement, async ({ page }) => {
     worker.postMessage({ type: 'read', id: 'alias-after', path: 'alias.txt' });
     const aliasAfter = await waitFor((message) => message.type === 'error' && message.id === 'alias-after');
 
-    await asyncClient.writeFile('/home/mailbox/oversized.bin', new Uint8Array(8_192));
+    await asyncClient.writeFile('/home/mailbox/oversized.bin', new Uint8Array(8_192).fill(0x61));
+    await asyncClient.mkdir('/home/mailbox/listing', { recursive: true });
+    for (let index = 0; index < 32; index += 1) {
+      await asyncClient.writeFile(`/home/mailbox/listing/entry-with-a-long-name-${index}.txt`, '');
+    }
+    await asyncClient.writeFile('/home/mailbox/small.txt', 'small');
     const boundedDescriptor = await asyncClient.openSynchronousMailbox('bounded-response', {
       payloadCapacity: 128,
       maxPayloadBytes: 256,
@@ -88,7 +93,17 @@ test(synchronousVfsMailboxClaim.statement, async ({ page }) => {
     boundedWorker.postMessage({ type: 'initialize', descriptor: boundedDescriptor });
     await waitForBounded((message) => message.type === 'initialized');
     boundedWorker.postMessage({ type: 'read', id: 'oversized', path: 'oversized.bin' });
-    const oversized = await waitForBounded((message) => message.type === 'error' && message.id === 'oversized');
+    // A file larger than one response is read in bounded slices (fbb26da1).
+    const oversized = await waitForBounded((message) => message.type === 'result' && message.id === 'oversized');
+    // A response that cannot be sliced still fails alone, and the mailbox stays usable.
+    boundedWorker.postMessage({ type: 'readdir', id: 'oversized-listing', path: 'listing' });
+    const oversizedListing = await waitForBounded(
+      (message) => message.type === 'error' && message.id === 'oversized-listing'
+    );
+    boundedWorker.postMessage({ type: 'read', id: 'after-oversized', path: 'small.txt' });
+    const afterOversized = await waitForBounded(
+      (message) => message.type === 'result' && message.id === 'after-oversized'
+    );
 
     worker.postMessage({ type: 'close' });
     boundedWorker.postMessage({ type: 'close' });
@@ -99,7 +114,7 @@ test(synchronousVfsMailboxClaim.statement, async ({ page }) => {
     server.close();
     service.dispose();
     await Promise.all([peer.closed, server.closed]);
-    return { chunked, chunkJournal, asyncRevisionAfterChunk, cacheOne, cacheHit, cacheTwo, resync, aliasBefore, aliasAfter, oversized };
+    return { chunked, chunkJournal, asyncRevisionAfterChunk, cacheOne, cacheHit, cacheTwo, resync, aliasBefore, aliasAfter, oversized, oversizedListing, afterOversized };
   });
 
   expect(result.chunked).toMatchObject({ byteLength: 8_192, first: 0, last: 159 });
@@ -118,7 +133,11 @@ test(synchronousVfsMailboxClaim.statement, async ({ page }) => {
   expect(result.resync.diagnostics).toMatchObject({ resynchronizations: 1 });
   expect(result.aliasBefore).toMatchObject({ text: 'aliased' });
   expect(result.aliasAfter).toMatchObject({ code: 'NOT_FOUND' });
-  expect(result.oversized).toMatchObject({ code: 'VFS_PAYLOAD_TOO_LARGE' });
+  // 8 KiB through a 256-byte limit: at most 128 file bytes per slice, so at least 64 bounded round trips.
+  expect(result.oversized.text).toBe('a'.repeat(8_192));
+  expect(result.oversized.diagnostics.requests).toBeGreaterThanOrEqual(8_192 / 128);
+  expect(result.oversizedListing).toMatchObject({ code: 'VFS_PAYLOAD_TOO_LARGE' });
+  expect(result.afterOversized).toMatchObject({ text: 'small' });
   expect(pageErrors).toEqual([]);
 });
 
@@ -130,7 +149,12 @@ test('synchronous VFS mailbox scheduling is fair and fail-stop bounded', async (
   await expect.poll(() => page.evaluate(() => globalThis.crossOriginIsolated)).toBe(true);
 
   const result = await page.evaluate(async () => {
-    const vfs = await import('/src/runtime/modules/virtual-file-system/index.ts');
+    // ADR-0029 slice 8 (77ce66e8) took the authority and the mailbox host off the
+    // module's entry point; a test of the module's internals imports its files by path.
+    const vfs = {
+      ...(await import('/src/runtime/modules/virtual-file-system/authority.ts')),
+      ...(await import('/src/runtime/modules/virtual-file-system/mailbox.ts'))
+    };
     const { collectWorkerMessages } = await import('/tests/fixtures/worker-message-collector.ts');
     const authority = vfs.createVirtualFileSystemAuthority('/home/fair');
     const host = vfs.createSynchronousVirtualFileSystemMailboxHost(authority);

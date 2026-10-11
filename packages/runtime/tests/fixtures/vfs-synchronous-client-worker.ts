@@ -9,6 +9,7 @@ type WorkerCommand =
   | { readonly type: 'initialize'; readonly descriptor: SynchronousVirtualFileSystemMailboxDescriptor }
   | { readonly type: 'write-read'; readonly id: string; readonly path: string; readonly size: number }
   | { readonly type: 'read'; readonly id: string; readonly path: string }
+  | { readonly type: 'readdir'; readonly id: string; readonly path: string }
   | { readonly type: 'close' };
 
 const scope = self as DedicatedWorkerGlobalScope;
@@ -42,6 +43,11 @@ scope.addEventListener('message', (event: MessageEvent<WorkerCommand>) => {
         last: observed.at(-1),
         diagnostics: client.diagnostics
       });
+      return;
+    }
+    if (command.type === 'readdir') {
+      const entries = client.readdirSync(command.path);
+      scope.postMessage({ type: 'result', id: command.id, revision: client.revision, entries: entries.length });
       return;
     }
     const observed = client.readFileSync(command.path, 'utf8');

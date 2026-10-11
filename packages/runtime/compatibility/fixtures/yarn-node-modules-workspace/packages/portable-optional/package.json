@@ -2,7 +2,7 @@
   "name": "portable-optional",
   "version": "1.0.0",
   "os": [
-    "browser"
+    "linux"
   ],
   "cpu": [
     "wasm32"

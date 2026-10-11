@@ -82,6 +82,15 @@ async function runPublisherArtifactScenario<Probe extends PublisherProbe>(
     worker.on('close', () => closedWorkerUrls.push(artifactUrl));
   });
 
+  if (manifest.executionCapacityEvidence) {
+    // The Runtime Host Worker is created by the Runtime Host document, a frame
+    // of its own (ADR-0033), and the pinned Worker from compatibility-test
+    // projects that document's value into it: every frame of the page reports
+    // the evidence's value, after the context's default pin.
+    await page.addInitScript((hardwareConcurrency) => {
+      Object.defineProperty(navigator, 'hardwareConcurrency', { configurable: true, value: hardwareConcurrency });
+    }, manifest.executionCapacityEvidence.runtimePlatform.hardwareConcurrency);
+  }
   await page.goto('/mimic-test-host.html', { waitUntil: 'domcontentloaded' });
   await expect.poll(() => page.evaluate(() => window.crossOriginIsolated), { timeout: 10_000 }).toBe(true);
 
@@ -98,24 +107,7 @@ async function runPublisherArtifactScenario<Probe extends PublisherProbe>(
     const { Mimic } = await import('/src/runtime/index.ts');
     const { installedReplacements } = await import('/tests/e2e/browser-package-replacement-evidence.ts');
     const { collectProcessOutput } = await import('/tests/e2e/process-output.ts');
-    const pageHardwareConcurrency = navigator.hardwareConcurrency;
-    if (manifest.executionCapacityEvidence) {
-      // The pinned Worker from compatibility-test projects the page value into
-      // the Runtime Host Worker at boot.
-      Object.defineProperty(navigator, 'hardwareConcurrency', {
-        configurable: true,
-        value: manifest.executionCapacityEvidence.runtimePlatform.hardwareConcurrency
-      });
-    }
-    let runtime: Awaited<ReturnType<typeof Mimic.boot>>;
-    try {
-      runtime = await Mimic.boot({ workdir: `/home/${manifest.id}` });
-    } finally {
-      Object.defineProperty(navigator, 'hardwareConcurrency', {
-        configurable: true,
-        value: pageHardwareConcurrency
-      });
-    }
+    const runtime = await Mimic.boot({ workdir: `/home/${manifest.id}` });
     let devServer: import('/src/runtime/index.ts').MimicProcess | undefined;
     let iframe: HTMLIFrameElement | undefined;
 
@@ -210,6 +202,9 @@ async function runPublisherArtifactScenario<Probe extends PublisherProbe>(
         (response) => response.status === 200,
         'Vite workload module'
       );
+      // A response from endpoints.fetch() belongs to the container's epoch:
+      // read before teardown, or its request is aborted with the epoch.
+      await Promise.all([rootResponse.arrayBuffer(), moduleResponse.arrayBuffer()]);
       const artifactFetches: Response[] = [];
       for (const artifact of manifest.artifacts) {
         artifactFetches.push(
@@ -482,7 +477,9 @@ async function runPublisherArtifactScenario<Probe extends PublisherProbe>(
       return withTimeout(
         (async () => {
           for (;;) {
-            const response = await fetch(url, init);
+            // The page is outside the Service Worker's scope (ADR-0030), so
+            // its own fetch never reaches a Published Endpoint.
+            const response = await runtime.endpoints.fetch(url, init);
             if (ready(response)) return response;
             await response.body?.cancel();
             await new Promise((resolve) => setTimeout(resolve, 50));

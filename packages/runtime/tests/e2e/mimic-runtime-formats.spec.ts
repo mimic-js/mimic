@@ -127,7 +127,7 @@ test(runtimeFormatsClaim.statement, async ({ page }) => {
   expect(summaryLine).toBeDefined();
   expect(JSON.parse(summaryLine ?? '')).toEqual({
     value: 'formats:42:42',
-    builtinPlatform: 'browser',
+    builtinPlatform: 'linux',
     syntheticIdentity: true,
     mappedError: {
       code: 'ERR_RUNTIME_ARTIFACT_COMPILE',

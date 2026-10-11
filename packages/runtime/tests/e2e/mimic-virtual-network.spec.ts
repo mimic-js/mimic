@@ -24,15 +24,18 @@ test(virtualNetworkCompatibilityClaim.statement, async ({ page }) => {
   await page.goto('/mimic-test-host.html', { waitUntil: 'domcontentloaded' });
   await expect.poll(() => page.evaluate(() => window.crossOriginIsolated)).toBe(true);
   // Process workers belong to the Runtime Host Worker: the hook crashes the
-  // newest one there when the page asks.
+  // newest running one there when the page asks. The Runtime Host keeps a
+  // spare process worker ahead of demand (ADR-0031), so the newest worker
+  // created is the idle spare; a worker runs a process once the host first
+  // posts to it.
   await installRuntimeHostWorkerHook(
     page,
     [
       'const NativeWorker = globalThis.Worker;',
-      'const nodeWorkers = [];',
+      'const runningWorkers = [];',
       'self.addEventListener("message", (event) => {',
       `  if (event.data?.type !== ${JSON.stringify(CRASH_MESSAGE)}) return;`,
-      '  const crashWorker = nodeWorkers.at(-1);',
+      '  const crashWorker = runningWorkers.at(-1);',
       "  const crash = new Error('forced browser claim worker crash');",
       "  crashWorker?.dispatchEvent(new ErrorEvent('error', { error: crash, message: crash.message }));",
       '  crashWorker?.terminate();',
@@ -40,7 +43,12 @@ test(virtualNetworkCompatibilityClaim.statement, async ({ page }) => {
       'globalThis.Worker = class extends NativeWorker {',
       '  constructor(scriptURL, options) {',
       '    super(scriptURL, options);',
-      "    if (options?.name === 'mimic-js-process') nodeWorkers.push(this);",
+      "    if (options?.name !== 'mimic-js-process') return;",
+      '    const post = this.postMessage.bind(this);',
+      '    this.postMessage = (...args) => {',
+      '      if (!runningWorkers.includes(this)) runningWorkers.push(this);',
+      '      return post(...args);',
+      '    };',
       '  }',
       '};'
     ].join('\n')
@@ -248,6 +256,11 @@ test(virtualNetworkCompatibilityClaim.statement, async ({ page }) => {
               : undefined
         })
       );
+      // A crash that never lands leaves the server listening; end it so the
+      // claim fails on the outcome instead of waiting for output that never closes.
+      if (crashServerOutcome.type === 'crash' && crashServerOutcome.message === 'crashed worker exit timed out') {
+        crashServer.kill('SIGKILL');
+      }
       const crashServerOutput = await crashServerOutputPromise.catch(
         (error: unknown) =>
           error instanceof Error ? error.message : String(error)

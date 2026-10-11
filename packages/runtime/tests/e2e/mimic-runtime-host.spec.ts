@@ -135,7 +135,12 @@ test('Mimic fails the epoch when the Runtime Host worker crashes', async ({ page
   expect(pageErrors).toEqual([]);
 });
 
-test('Runtime Host owns browser-hosted background invariant failure', async ({
+// A process worker runs application code, so a runtime error it reports is
+// that process's failure, never the epoch's, and it cannot brand itself a
+// crash: the process exits 1 with the error on stderr and the runtime keeps
+// serving (87a6e85d, audit findings 13 and 14). The epoch's own terminal
+// decision for a background invariant failure is covered by worker-epoch.test.ts.
+test('Runtime Host contains a process worker background runtime error to its process', async ({
   page
 }) => {
   const pageErrors: string[] = [];
@@ -182,47 +187,35 @@ test('Runtime Host owns browser-hosted background invariant failure', async ({
         '-e',
         'await new Promise(() => {});'
       ]);
-      const pendingFailure = await pendingProcess.exit.catch(
-        (error: unknown) => ({
-          code:
-            typeof error === 'object' && error !== null && 'code' in error
-              ? String(error.code)
-              : 'missing-code',
-          message: error instanceof Error ? error.message : String(error),
-          name: error instanceof Error ? error.name : 'NonError'
-        })
-      );
-      const rejectedWork = await runtime.fs.mount({}).then(
+      const [pendingExit, pendingStderr] = await Promise.all([
+        pendingProcess.exit.then(
+          (code) => ({ type: 'exit' as const, code }),
+          (error: unknown) => ({
+            type: 'crash' as const,
+            name: error instanceof Error ? error.name : 'NonError',
+            message: error instanceof Error ? error.message : String(error)
+          })
+        ),
+        readText(pendingProcess.stderr)
+      ]);
+      const laterWork = await runtime.fs.mount({}).then(
         () => 'accepted',
         (error: unknown) =>
           error instanceof Error ? error.message : String(error)
       );
-      const teardownFailure = await runtime.teardown().catch(
-        (error: unknown) => ({
-          causeName:
-            error instanceof Error && error.cause instanceof Error
-              ? error.cause.name
-              : 'missing-cause',
-          code:
-            typeof error === 'object' && error !== null && 'code' in error
-              ? String(error.code)
-              : 'missing-code',
-          message: error instanceof Error ? error.message : String(error),
-          name: error instanceof Error ? error.name : 'NonError'
-        })
+      const laterProcess = await runtime.spawn('echo', ['epoch-survived']);
+      const laterOutput = await readText(laterProcess.stdout);
+      const laterExit = await laterProcess.exit;
+      const teardown = await runtime.teardown().then(
+        () => 'complete',
+        (error: unknown) =>
+          error instanceof Error ? `${error.name}: ${error.message}` : String(error)
       );
-      const rebooted = await Mimic.boot({ workdir: '/home/background-invariant-reboot' });
-      const rebootProcess = await rebooted.spawn('echo', [
-        'background-rebooted'
-      ]);
-      const rebootOutput = await readText(rebootProcess.stdout);
-      const rebootExit = await rebootProcess.exit;
-      await rebooted.teardown();
       return {
-        pendingFailure,
-        reboot: { exit: rebootExit, output: rebootOutput },
-        rejectedWork,
-        teardownFailure
+        pending: { exit: pendingExit, stderr: pendingStderr },
+        laterWork,
+        later: { exit: laterExit, output: laterOutput },
+        teardown
       };
     } finally {
       await runtime.teardown().catch(() => undefined);
@@ -242,28 +235,11 @@ test('Runtime Host owns browser-hosted background invariant failure', async ({
     }
   }).finally(() => disposeExecutionWorkerFault(page));
 
-  expect(result.pendingFailure).toEqual({
-    code: 'PROCESS_CRASH',
-    message: expect.stringContaining(
-      'browser-background-invariant-marker'
-    ),
-    name: 'MimicProcessCrashError'
-  });
-  expect(result.teardownFailure).toEqual({
-    causeName: 'RuntimeHostAdapterInvariantError',
-    code: 'RUNTIME_EPOCH_FAILED',
-    message: expect.stringContaining(
-      'browser-background-invariant-marker'
-    ),
-    name: 'RuntimeEpochFailedError'
-  });
-  expect(result.rejectedWork).toContain(
-    'Mimic runtime is tearing down'
-  );
-  expect(result.reboot).toEqual({
-    exit: 0,
-    output: 'background-rebooted\n'
-  });
+  expect(result.pending.exit).toEqual({ type: 'exit', code: 1 });
+  expect(result.pending.stderr).toContain('browser-background-invariant-marker');
+  expect(result.laterWork).toBe('accepted');
+  expect(result.later).toEqual({ exit: 0, output: 'epoch-survived\n' });
+  expect(result.teardown).toBe('complete');
   await expect
     .poll(() => currentRuntimeWorkerUrls(page), { timeout: 5_000 })
     .toEqual([]);

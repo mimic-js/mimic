@@ -97,6 +97,45 @@ describe('WASI Preview1 imports a NAPI-RS binding links', () => {
   });
 });
 
+describe('WASI over the shared memory of a threaded binding', () => {
+  test('reads a path past the length a stale view of a grown shared memory shows, as a thread woken in WebAssembly may see it', () => {
+    const vfs = new VirtualFileSystem('/project');
+    vfs.mkdirSync('/project/node_modules/entry', { recursive: true });
+    vfs.writeFileSync('/project/node_modules/entry/index.js', 'export {};');
+    const wasi = new (createWasiBuiltin({ ...runtimeOptions(), vfs: wasiVfsPort(vfs) }).WASI)({
+      version: 'preview1',
+      preopens: { '/project': '/project' }
+    });
+    const memory = new WebAssembly.Memory({ initial: 1, maximum: 4, shared: true });
+    // Another thread grew the memory; this thread's Memory object still holds the one-page buffer.
+    const stale = memory.buffer;
+    memory.grow(1);
+    const current = new Uint8Array(memory.buffer);
+    const grow = vi.fn((delta: number) => {
+      Reflect.deleteProperty(memory, 'buffer');
+      return WebAssembly.Memory.prototype.grow.call(memory, delta);
+    });
+    Object.defineProperty(memory, 'buffer', { configurable: true, get: () => stale });
+    Object.defineProperty(memory, 'grow', { configurable: true, value: grow });
+    wasi.initialize({ exports: { memory, _initialize: () => undefined } });
+    const imports = wasi.wasiImport as Record<string, (...args: unknown[]) => number>;
+    const path = new TextEncoder().encode('node_modules/entry/index.js');
+    const pointer = 70_000;
+    const result = 71_000;
+    current.set(path, pointer);
+
+    expect(stale.byteLength).toBeLessThan(pointer);
+    expect(imports.path_filestat_get!(3, 1, pointer, path.byteLength, result)).toBe(0);
+    expect(grow).toHaveBeenCalledWith(0);
+    // A regular file of the file's size.
+    const view = new DataView(memory.buffer);
+    expect(view.getUint8(result + 16)).toBe(4);
+    expect(view.getBigUint64(result + 32, true)).toBe(10n);
+    // A span past the memory's current length is still a fault.
+    expect(imports.path_filestat_get!(3, 1, 4 * 65_536, path.byteLength, result)).toBe(21);
+  });
+});
+
 function runtimeOptions() {
   return {
     process: {

@@ -323,7 +323,7 @@ test(yarnNodeModulesWorkspaceClaim.statement, async ({ page }, testInfo) => {
     });
     expect(run.cold.bin.output).toContain('peer-helper installed-bin');
     expect(run.cold.peer).toBe('peer-helper lifecycle\n');
-    expect(run.cold.optional).toBe('portable-optional browser wasm32\n');
+    expect(run.cold.optional).toBe('portable-optional linux wasm32\n');
     expect(run.cold.order).toBe('dependency\ntool\n');
     expect(run.repeatInstall.exitCode, run.repeatInstall.output).toBe(0);
     expect(run.repeat.lifecycle.exitCode, run.repeat.lifecycle.output).toBe(0);
