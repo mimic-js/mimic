@@ -134,22 +134,27 @@
   height: 100%;
 }
 
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* The site's header, over the whole width of the playground */
+.app .site-header-inner {
+  flex-wrap: nowrap;
+  width: 100%;
+  gap: 8px 12px;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
 }
 
-.topbar .repository-input {
-  width: 280px;
+.app .repository-input {
+  flex: 0 1 280px;
+  min-width: 120px;
   margin-left: auto;
 }
 
-.topbar .repository-input ~ .site-nav {
-  margin-left: 6px;
+.app .site-nav {
+  flex: none;
+  flex-wrap: nowrap;
+}
+
+.app .repository-input ~ .site-nav {
+  margin-left: 12px;
 }
 
 .repository-link,
@@ -164,7 +169,11 @@
 }
 
 .repository-ref {
+  overflow: hidden;
+  min-width: 0;
   padding: 2px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   border: 1px solid var(--border);
   border-radius: 999px;
   color: var(--text-muted);
@@ -446,25 +455,22 @@
 /* A phone stacks the files, the editor, the terminals and the preview. */
 
 @media (max-width: 720px) {
-  .topbar {
+  .app .site-header-inner {
     flex-wrap: wrap;
   }
 
   /* The repository input takes a line of its own, under the navigation. */
-  .topbar .repository-input {
+  .app .repository-input {
     order: 1;
     width: 100%;
   }
 
-  .topbar .repository-input ~ .site-nav {
+  .app .repository-input ~ .site-nav {
     margin-left: auto;
   }
 
   .repository-ref {
-    overflow: hidden;
     max-width: 100%;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .workspace,

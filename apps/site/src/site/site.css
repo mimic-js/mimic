@@ -15,6 +15,8 @@
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   backdrop-filter: blur(8px);
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 .site-header-inner {
@@ -30,6 +32,7 @@
 
 .site-brand {
   display: flex;
+  flex: none;
   align-items: center;
   gap: 10px;
   color: var(--text);
@@ -53,14 +56,6 @@
 .site-nav a:hover,
 .site-nav a.active {
   color: var(--text);
-}
-
-/* In the playground's top bar: one line, at the end of the bar */
-.site-nav-compact {
-  flex: none;
-  flex-wrap: nowrap;
-  gap: 14px;
-  font-size: 13px;
 }
 
 .site-main {

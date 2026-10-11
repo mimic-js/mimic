@@ -48,21 +48,3 @@ ul {
 a {
   color: var(--accent);
 }
-
-/* The logo mark that links the playground back to the site */
-
-.site-mark {
-  display: grid;
-  flex: none;
-  place-items: center;
-  border-radius: 6px;
-}
-
-.site-mark img {
-  display: block;
-}
-
-.site-mark:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}

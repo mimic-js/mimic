@@ -1,16 +1,11 @@
 import { Outlet } from 'react-router';
-import { GITHUB_URL, SiteBrand, SiteNav } from './SiteNav';
+import { GITHUB_URL, SiteHeader } from './SiteHeader';
 
 /** The header and footer of the landing page, the documentation and the 404 page. */
 export function SiteLayout() {
   return (
     <div className="site">
-      <header className="site-header">
-        <div className="site-header-inner">
-          <SiteBrand />
-          <SiteNav />
-        </div>
-      </header>
+      <SiteHeader />
       <Outlet />
       <footer className="site-footer">
         <span>MIT licensed.</span>
