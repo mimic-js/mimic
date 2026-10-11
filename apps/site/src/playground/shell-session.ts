@@ -8,7 +8,7 @@ const CLEAR = '\x1b[H\x1b[2J\x1b[3J';
 
 type RunningCommand = {
   readonly process: MimicProcess;
-  readonly input: WritableStreamDefaultWriter<Uint8Array>;
+  readonly stdin: WritableStreamDefaultWriter<Uint8Array>;
   interrupted: boolean;
 };
 
@@ -156,11 +156,11 @@ export class ShellSession {
         running.process.kill(running.interrupted ? 'SIGKILL' : 'SIGINT');
         running.interrupted = true;
       } else if (character === '\x04') {
-        void running.input.close().catch(() => undefined);
+        void running.stdin.close().catch(() => undefined);
       } else if (character === '\r') {
         this.#write('\r\n');
         this.#atLineStart = true;
-        void running.input.write(encoder.encode(`${this.#line}\n`)).catch(() => undefined);
+        void running.stdin.write(encoder.encode(`${this.#line}\n`)).catch(() => undefined);
         this.#line = '';
       } else if (character === '\x7f') {
         if (this.#line) {
@@ -205,17 +205,19 @@ export class ShellSession {
         // Programs see no terminal, and would otherwise print without colour.
         env: { FORCE_COLOR: '1' }
       });
-      const running: RunningCommand = { process, input: process.input.getWriter(), interrupted: false };
+      const running: RunningCommand = { process, stdin: process.stdin.getWriter(), interrupted: false };
       this.#running = running;
-      await process.output.pipeTo(
-        new WritableStream({
+      // Both streams print to the terminal as their chunks arrive, as a
+      // terminal shows a program's standard output and error together.
+      const toTerminal = () =>
+        new WritableStream<Uint8Array>({
           write: (chunk) => {
             if (this.#disposed || chunk.byteLength === 0) return;
             this.#atLineStart = chunk[chunk.byteLength - 1] === NEWLINE;
             this.terminal.write(chunk);
           }
-        })
-      );
+        });
+      await Promise.all([process.stdout.pipeTo(toTerminal()), process.stderr.pipeTo(toTerminal())]);
       this.#lastExitCode = await process.exit;
     } catch (error) {
       this.#lastExitCode = 1;

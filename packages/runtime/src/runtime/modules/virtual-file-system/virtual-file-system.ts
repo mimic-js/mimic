@@ -1,6 +1,5 @@
 import type {
   DirentLike,
-  ExportedFileSystemTree,
   FileSystemArchiveFormat,
   FileStatLike,
   FileSystemAPI,
@@ -802,7 +801,7 @@ export class VirtualFileSystem implements FileSystemAPI {
     this.mount(tree, mountPoint);
   }
 
-  exportTree(path = this.workdir): ExportedFileSystemTree {
+  exportTree(path = this.workdir): FileSystemTree {
     const root = normalizePath(path, this.workdir);
     const node = this.nodes.get(root);
     if (!node) throw vfsError('NOT_FOUND', `No such path: ${root}`);

@@ -4,6 +4,7 @@ import { createServer, type Server } from 'node:http';
 import { createServer as createNetServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { basename, extname, isAbsolute, join, relative, resolve } from 'node:path';
+import { createRequire } from 'node:module';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 
@@ -118,6 +119,50 @@ export async function startCleanExternalConsumer(): Promise<CleanExternalConsume
       throw new AggregateError([error, cleanupError], 'Clean external consumer setup and cleanup both failed.');
     }
     throw error;
+  }
+}
+
+/**
+ * Compiles `source` in the clean consumer against the declarations the packed
+ * artifact installed, without skipping them, under each module resolution a
+ * consumer's compiler may use. Rejects with the compiler's diagnostics.
+ */
+export async function typecheckCleanConsumer(consumerRoot: string, source: string): Promise<void> {
+  const compiler = createRequire(import.meta.url).resolve('typescript/bin/tsc');
+  await writeFile(join(consumerRoot, 'typecheck.ts'), source);
+  for (const [module, moduleResolution] of [
+    ['ESNext', 'Bundler'],
+    ['NodeNext', 'NodeNext']
+  ] as const) {
+    const config = `tsconfig.${moduleResolution.toLowerCase()}.json`;
+    await writeFile(
+      join(consumerRoot, config),
+      `${JSON.stringify(
+        {
+          compilerOptions: {
+            target: 'ES2022',
+            module,
+            moduleResolution,
+            lib: ['DOM', 'DOM.Iterable', 'ES2022'],
+            types: [],
+            strict: true,
+            noEmit: true,
+            skipLibCheck: false
+          },
+          files: ['typecheck.ts']
+        },
+        null,
+        2
+      )}\n`
+    );
+    try {
+      await runFile(process.execPath, [compiler, '--project', config], { cwd: consumerRoot, maxBuffer: 10 * 1024 * 1024 });
+    } catch (error) {
+      const output = error as { stdout?: string; stderr?: string };
+      throw new Error(
+        `The clean consumer does not compile against the packed declarations (${moduleResolution}):\n${output.stdout ?? ''}${output.stderr ?? ''}`
+      );
+    }
   }
 }
 

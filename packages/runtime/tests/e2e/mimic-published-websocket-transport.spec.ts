@@ -112,6 +112,7 @@ test(publishedWebSocketTransportClaim.statement, async ({ page }) => {
 
   const appUrl = await page.evaluate(async (serverSource) => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const runtime = await Mimic.boot({ workdir: '/home/websocket-transport' });
     const state = window as unknown as TransportWindow;
     state.transportRuntime = runtime;
@@ -124,7 +125,7 @@ test(publishedWebSocketTransportClaim.statement, async ({ page }) => {
     state.transportServer = server;
     const decoder = new TextDecoder();
     void (async () => {
-      const reader = server.output.getReader();
+      const reader = mergeProcessOutput(server).getReader();
       for (;;) {
         const { value, done } = await reader.read();
         if (done) return;

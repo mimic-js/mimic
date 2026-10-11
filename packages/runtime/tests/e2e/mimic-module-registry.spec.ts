@@ -22,6 +22,7 @@ test(moduleRegistryCompatibilityClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async () => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const runtime = await Mimic.boot({ workdir: '/home/module-registry' });
     try {
       await runtime.fs.mount({
@@ -86,7 +87,7 @@ test(moduleRegistryCompatibilityClaim.statement, async ({ page }) => {
       });
 
       const process = await runtime.spawn('node', ['/home/module-registry/entry.cjs']);
-      const output = await collectOutput(process.output);
+      const output = await collectOutput(mergeProcessOutput(process));
       return { exitCode: await process.exit, output };
     } finally {
       await runtime.teardown();

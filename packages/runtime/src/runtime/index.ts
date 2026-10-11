@@ -1,29 +1,30 @@
 import {
   bootRuntimeHost,
+  MimicProcessCrashError as RuntimeProcessCrashError,
   normalizePath,
   normalizePreviewOrigin,
   type AsyncVirtualFileSystemClient,
-  type DirentLike,
-  type ExportedFileSystemTree,
-  type FileStatLike,
-  type FileSystemTree,
-  type PublishedEndpoint,
-  type PublishedEndpointCollection,
-  type PublishedEndpointLifecycleEvent,
-  type RevisionedFileSystemAPI,
+  type PublishedEndpoint as RuntimePublishedEndpoint,
+  type PublishedEndpointCollection as RuntimePublishedEndpointCollection,
   type RuntimeProgramProcess,
   type RuntimeHost
 } from './modules/runtime-host';
 
-export { MimicProcessCrashError } from './modules/runtime-host';
-export type {
-  ExportedFileSystemTree,
-  FileSystemTree,
-  PublishedEndpoint,
-  PublishedEndpointCollection
-} from './modules/runtime-host';
+// The public surface is declared in this file alone, so that the package's
+// one declaration file is self-contained: no public signature names a type of
+// an internal module. Adapters below map the internal objects onto it.
+
+/**
+ * The `Cross-Origin-Embedder-Policy` of the embedding page. `require-corp`
+ * loads a cross-origin resource only when its response allows it;
+ * `credentialless` loads it without credentials instead, which spares the
+ * page CORP headers on every CDN it uses (Chromium and Firefox; Safari needs
+ * `require-corp`). Pass the same value to the Vite plugin, if one is used.
+ */
+export type EmbedderPolicy = 'require-corp' | 'credentialless';
 
 export type BootOptions = {
+  /** The project directory: the default `cwd` of a spawn and mount point of a mount. `/home/project` when omitted. */
   workdir?: string;
   /**
    * The `Cross-Origin-Embedder-Policy` the embedding page is served with.
@@ -47,26 +48,146 @@ export type BootOptions = {
   previewOrigin?: string;
 };
 
-export type EmbedderPolicy = 'require-corp' | 'credentialless';
-
 export interface SpawnOptions {
+  /** The working directory, resolved against the workdir. The workdir when omitted. */
   cwd?: string;
+  /** Variables added to, or replacing, the default environment. */
   env?: Record<string, string>;
-  output?: boolean;
-  terminal?: {
-    cols: number;
-    rows: number;
-  };
 }
 
-export type MimicProcess = Omit<RuntimeProgramProcess, 'crash' | 'termination'>;
+/** A program started with `Mimic.spawn()`. */
+export interface MimicProcess {
+  readonly pid: number;
+  /** The program's standard input. Closing it ends the input. */
+  readonly stdin: WritableStream<Uint8Array>;
+  /** The program's standard output. Once 64 KiB wait unread, the program's writes wait for a reader: read it, or `cancel()` it. */
+  readonly stdout: ReadableStream<Uint8Array>;
+  /** The program's standard error. Once 64 KiB wait unread, the program's writes wait for a reader: read it, or `cancel()` it. */
+  readonly stderr: ReadableStream<Uint8Array>;
+  /** The exit code; rejects with a `MimicProcessCrashError` when the runtime could not run the program to its end. */
+  readonly exit: Promise<number>;
+  /** Sends a signal, `SIGTERM` when omitted. */
+  kill(signal?: 'SIGTERM' | 'SIGKILL' | 'SIGINT'): void;
+}
 
-export interface FileSystemAPI extends RevisionedFileSystemAPI {
+/** The `code` of every `MimicProcessCrashError`. */
+export type MimicProcessCrashErrorCode = 'PROCESS_CRASH';
+
+/** Why `MimicProcess.exit` rejected: the runtime could not run the process to its end. */
+export interface MimicProcessCrashError extends Error {
+  readonly code: MimicProcessCrashErrorCode;
+  readonly pid: number;
+  /** Why the process crashed, without the process identity the message adds. */
+  readonly reason: string;
+  readonly cause: unknown;
+}
+
+export const MimicProcessCrashError: {
+  new (pid: number, reason: string, cause?: unknown): MimicProcessCrashError;
+  readonly prototype: MimicProcessCrashError;
+} = RuntimeProcessCrashError;
+
+/** An HTTP server a program listens with, as the page reaches it. */
+export interface PublishedEndpoint {
+  /** The port the program listened on. */
+  readonly port: number;
+  /** Where the page (an iframe, a link, `endpoints.fetch()`) reaches the server. */
+  readonly url: string;
+}
+
+export interface PublishedEndpointCollection {
+  /** The endpoints published now, in the order they were published. */
+  readonly current: readonly PublishedEndpoint[];
+  /** Calls `listener` when a server starts or stops listening; returns the unsubscribe function. */
+  on(
+    type: 'published' | 'unpublished',
+    listener: (endpoint: PublishedEndpoint) => void
+  ): () => void;
+  /**
+   * Requests a Published Endpoint URL from the embedding page, as `fetch`
+   * would from a document served by the endpoint. The page itself is outside
+   * the Service Worker's scope, so its own `fetch` does not reach an endpoint.
+   * The response belongs to the container's epoch: read it before `teardown()`.
+   */
+  fetch(input: string | URL, init?: RequestInit): Promise<Response>;
+}
+
+/** A directory as `fs.mount()` takes it and `fs.export()` returns it, by entry name. */
+export type FileSystemTree = {
+  [name: string]: FileSystemTreeNode;
+};
+
+export type FileSystemTreeNode = (
+  | { file: { contents: string | Uint8Array | ArrayBuffer } }
+  | { symlink: { target: string } }
+  | { directory: FileSystemTree }
+) & {
+  /** Modification time, kept by exports and archives. */
+  readonly mtimeMs?: number;
+  /**
+   * Permission bits of a file or directory, present in an export only when
+   * they differ from the default for its kind. Symbolic links ignore it.
+   */
+  readonly mode?: number;
+};
+
+export type FileStatLike = {
+  size: number;
+  ino: number;
+  /** File type and permission bits, as in `st_mode`. */
+  mode?: number;
+  nlink?: number;
+  ctime: Date;
+  mtime: Date;
+  mtimeMs: number;
+  isBlockDevice(): boolean;
+  isCharacterDevice(): boolean;
+  isFIFO(): boolean;
+  isFile(): boolean;
+  isDirectory(): boolean;
+  isSocket(): boolean;
+  isSymbolicLink(): boolean;
+};
+
+export type DirentLike = {
+  name: string;
+  isFile(): boolean;
+  isDirectory(): boolean;
+  isSymbolicLink(): boolean;
+};
+
+/** The container's file system, as the page reads and writes it. Paths are absolute or relative to the workdir. */
+export interface FileSystemAPI {
+  /**
+   * A number that changes whenever the file system changed; cheap to read,
+   * for polling a file tree. It is current as of this object's latest call:
+   * call any method, such as `exists()`, before reading it.
+   */
+  readonly revision: number;
+  readFile(path: string, encoding: 'utf8'): Promise<string>;
+  readFile(path: string, encoding?: null): Promise<Uint8Array>;
+  writeFile(
+    path: string,
+    data: string | Uint8Array,
+    options?: { append?: boolean; exclusive?: boolean; mode?: number }
+  ): Promise<void>;
+  readdir(path: string, options?: { withFileTypes?: boolean }): Promise<Array<string | DirentLike>>;
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  rm(path: string, options?: { recursive?: boolean; force?: boolean }): Promise<void>;
+  rename(oldPath: string, newPath: string): Promise<void>;
+  stat(path: string): Promise<FileStatLike>;
+  lstat(path: string): Promise<FileStatLike>;
+  exists(path: string): Promise<boolean>;
+  symlink(target: string, path: string): Promise<void>;
+  readlink(path: string): Promise<string>;
+  realpath(path: string): Promise<string>;
+  /** Writes a tree, or the entries of a zip or tar archive, under `mountPoint` (the workdir when omitted). */
   mount(
     input: FileSystemTree | Uint8Array | ArrayBuffer,
     options?: { mountPoint?: string }
   ): Promise<void>;
-  export(path?: string, options?: { format?: 'json' }): Promise<ExportedFileSystemTree>;
+  /** Reads `path` (the workdir when omitted) as a tree, or as a zip or tar archive. */
+  export(path?: string, options?: { format?: 'json' }): Promise<FileSystemTree>;
   export(
     path: string | undefined,
     options: { format: 'zip' | 'tar' }
@@ -74,10 +195,12 @@ export interface FileSystemAPI extends RevisionedFileSystemAPI {
   export(
     path?: string,
     options?: { format?: 'json' | 'zip' | 'tar' }
-  ): Promise<ExportedFileSystemTree | Uint8Array>;
+  ): Promise<FileSystemTree | Uint8Array>;
 }
 
+/** A container: a file system, the processes that run in it, and the HTTP servers they listen with. */
 export class Mimic {
+  /** The project directory, `/home/project` unless `boot()` named another. */
   readonly workdir: string;
   readonly fs: FileSystemAPI;
 
@@ -99,6 +222,7 @@ export class Mimic {
     );
   }
 
+  /** The HTTP servers the container's programs listen with. */
   get endpoints(): PublishedEndpointCollection {
     this.assertAvailable();
     this.runtimeHost();
@@ -108,6 +232,7 @@ export class Mimic {
     return this.publicEndpoints;
   }
 
+  /** Starts a container. The page must be cross-origin isolated. */
   static async boot(options: BootOptions = {}): Promise<Mimic> {
     const workdir = options.workdir ?? '/home/project';
     assertCanonicalWorkdir(workdir);
@@ -142,6 +267,7 @@ export class Mimic {
     this.assertAvailable();
   }
 
+  /** Starts a program: `node`, a package manager, a binary of `node_modules/.bin`, or `sh`. */
   async spawn(
     command: string,
     args: string[],
@@ -180,15 +306,18 @@ export class Mimic {
       ...spawnOptions.env
     };
 
-    return this.runtimeHost().spawn({
-      command,
-      args,
-      cwd,
-      env,
-      parentPid: 0
-    });
+    return publicProcess(
+      await this.runtimeHost().spawn({
+        command,
+        args,
+        cwd,
+        env,
+        parentPid: 0
+      })
+    );
   }
 
+  /** Stops every process and releases the container. Calling it again returns the same promise. */
   teardown(): Promise<void> {
     if (this.teardownPromise) return this.teardownPromise;
     this.tornDown = true;
@@ -232,16 +361,8 @@ class MimicFileSystem implements FileSystemAPI {
     return this.runtimeFileSystem().revision;
   }
 
-  async access(path: string): Promise<void> {
-    return this.runtimeFileSystem().access(path);
-  }
-
   async exists(path: string): Promise<boolean> {
     return this.runtimeFileSystem().exists(path);
-  }
-
-  async link(existingPath: string, newPath: string): Promise<void> {
-    return this.runtimeFileSystem().link(existingPath, newPath);
   }
 
   async lstat(path: string): Promise<FileStatLike> {
@@ -298,20 +419,12 @@ class MimicFileSystem implements FileSystemAPI {
     return this.runtimeFileSystem().symlink(target, path);
   }
 
-  async utimes(path: string, mtimeMs: number): Promise<void> {
-    return this.runtimeFileSystem().utimes(path, mtimeMs);
-  }
-
   async writeFile(
     path: string,
     data: string | Uint8Array,
     options?: { append?: boolean; exclusive?: boolean; mode?: number }
   ): Promise<void> {
     return this.runtimeFileSystem().writeFile(path, data, options);
-  }
-
-  async chmod(path: string, mode: number): Promise<void> {
-    return this.runtimeFileSystem().chmod(path, mode);
   }
 
   async mount(
@@ -336,7 +449,7 @@ class MimicFileSystem implements FileSystemAPI {
   async export(
     path?: string,
     options?: { format?: 'json' }
-  ): Promise<ExportedFileSystemTree>;
+  ): Promise<FileSystemTree>;
   async export(
     path: string | undefined,
     options: { format: 'zip' | 'tar' }
@@ -344,11 +457,11 @@ class MimicFileSystem implements FileSystemAPI {
   async export(
     path?: string,
     options?: { format?: 'json' | 'zip' | 'tar' }
-  ): Promise<ExportedFileSystemTree | Uint8Array>;
+  ): Promise<FileSystemTree | Uint8Array>;
   async export(
     path = this.workdir,
     options: { format?: 'json' | 'zip' | 'tar' } = {}
-  ): Promise<ExportedFileSystemTree | Uint8Array> {
+  ): Promise<FileSystemTree | Uint8Array> {
     const fs = this.runtimeFileSystem();
     const resolvedPath = normalizePath(path, this.workdir);
     const format = options.format ?? 'json';
@@ -367,30 +480,55 @@ class MimicFileSystem implements FileSystemAPI {
   }
 }
 
+/** The public face of a Runtime Program Process: its streams, exit and `kill`. */
+function publicProcess(process: RuntimeProgramProcess): MimicProcess {
+  return Object.freeze({
+    pid: process.pid,
+    stdin: process.stdin,
+    stdout: process.stdout,
+    stderr: process.stderr,
+    exit: process.exit,
+    kill: (signal?: 'SIGTERM' | 'SIGKILL' | 'SIGINT') => process.kill(signal)
+  });
+}
+
 class ReadonlyPublishedEndpointCollection
   implements PublishedEndpointCollection
 {
+  // One public object per published endpoint, so that `current` and the
+  // listeners hand out the same object for the same endpoint.
+  readonly #public = new WeakMap<RuntimePublishedEndpoint, PublishedEndpoint>();
+
   constructor(
-    private readonly source: PublishedEndpointCollection,
+    private readonly source: RuntimePublishedEndpointCollection,
     private readonly assertAvailable: () => void
   ) {}
 
   get current(): readonly PublishedEndpoint[] {
     this.assertAvailable();
-    return this.source.current;
+    return this.source.current.map((endpoint) => this.publicEndpoint(endpoint));
   }
 
-  on<Type extends PublishedEndpointLifecycleEvent['type']>(
-    type: Type,
+  on(
+    type: 'published' | 'unpublished',
     listener: (endpoint: PublishedEndpoint) => void
   ): () => void {
     this.assertAvailable();
-    return this.source.on(type, listener);
+    return this.source.on(type, (endpoint) => listener(this.publicEndpoint(endpoint)));
   }
 
   fetch(input: string | URL, init?: RequestInit): Promise<Response> {
     this.assertAvailable();
     return this.source.fetch(input, init);
+  }
+
+  private publicEndpoint(endpoint: RuntimePublishedEndpoint): PublishedEndpoint {
+    let mapped = this.#public.get(endpoint);
+    if (!mapped) {
+      mapped = Object.freeze({ port: endpoint.address.port, url: endpoint.url });
+      this.#public.set(endpoint, mapped);
+    }
+    return mapped;
   }
 }
 

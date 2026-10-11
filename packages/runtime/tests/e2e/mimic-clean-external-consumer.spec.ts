@@ -2,6 +2,7 @@ import { defineCompatibilityClaim } from './compatibility-claim';
 import { expect, test } from './compatibility-test';
 import {
   startCleanExternalConsumer,
+  typecheckCleanConsumer,
   type CleanExternalConsumerWindow
 } from './clean-external-consumer-harness';
 
@@ -45,6 +46,7 @@ test(cleanExternalConsumerClaim.statement, async ({ page }) => {
   try {
     expect(consumer.consumerRoot).not.toBe('');
     expect(consumer.packedArtifact).toContain('mimic-js-runtime-');
+    await typecheckCleanConsumer(consumer.consumerRoot, publicSurfaceConsumerSource);
     await page.goto(consumer.url, { waitUntil: 'domcontentloaded' });
     await expect.poll(() => page.evaluate(() => window.crossOriginIsolated)).toBe(true);
     await expect.poll(() => page.evaluate(() => Reflect.has(window, '__cleanExternalConsumer'))).toBe(true);
@@ -83,7 +85,7 @@ test(cleanExternalConsumerClaim.statement, async ({ page }) => {
 
           return {
             workdir: runtime.workdir,
-            endpoint: { port: endpoint.address.port, sameOrigin: new URL(endpoint.url).origin === location.origin },
+            endpoint: { port: endpoint.port, sameOrigin: new URL(endpoint.url).origin === location.origin },
             response: {
               status: response.status,
               owner: response.headers.get('x-external-consumer-run'),
@@ -251,3 +253,108 @@ test(cleanExternalConsumerClaim.statement, async ({ page }) => {
     await consumer.close();
   }
 });
+
+/**
+ * A TypeScript consumer of every public type, compiled against the packed
+ * declarations: it fails to compile when the surface grows a member, loses
+ * one, or names a type the package does not ship.
+ */
+const publicSurfaceConsumerSource = `import {
+  Mimic,
+  MimicProcessCrashError,
+  type BootOptions,
+  type DirentLike,
+  type EmbedderPolicy,
+  type FileStatLike,
+  type FileSystemAPI,
+  type FileSystemTree,
+  type FileSystemTreeNode,
+  type MimicProcess,
+  type MimicProcessCrashErrorCode,
+  type PublishedEndpoint,
+  type PublishedEndpointCollection,
+  type SpawnOptions
+} from '@mimic-js/runtime';
+
+type Exactly<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+
+export const surface: [
+  Exactly<keyof MimicProcess, 'pid' | 'stdin' | 'stdout' | 'stderr' | 'exit' | 'kill'>,
+  Exactly<keyof PublishedEndpoint, 'port' | 'url'>,
+  Exactly<keyof PublishedEndpointCollection, 'current' | 'on' | 'fetch'>,
+  Exactly<keyof SpawnOptions, 'cwd' | 'env'>,
+  Exactly<keyof BootOptions, 'workdir' | 'embedderPolicy' | 'previewOrigin'>,
+  Exactly<
+    keyof FileSystemAPI,
+    | 'revision'
+    | 'readFile'
+    | 'writeFile'
+    | 'readdir'
+    | 'mkdir'
+    | 'rm'
+    | 'rename'
+    | 'stat'
+    | 'lstat'
+    | 'exists'
+    | 'symlink'
+    | 'readlink'
+    | 'realpath'
+    | 'mount'
+    | 'export'
+  >,
+  Exactly<MimicProcessCrashErrorCode, 'PROCESS_CRASH'>,
+  Exactly<EmbedderPolicy, 'require-corp' | 'credentialless'>
+] = [true, true, true, true, true, true, true, true];
+
+export async function run(options: BootOptions): Promise<number> {
+  const container = await Mimic.boot(options);
+  try {
+    const tree: FileSystemTree = {
+      'index.js': { file: { contents: new Uint8Array([10]) }, mtimeMs: 0 },
+      lib: { directory: {} },
+      link: { symlink: { target: 'index.js' } }
+    };
+    await container.fs.mount(tree);
+    const exported: FileSystemTree = await container.fs.export();
+    const node: FileSystemTreeNode | undefined = exported['index.js'];
+    const archive: Uint8Array = await container.fs.export(undefined, { format: 'zip' });
+    const stat: FileStatLike = await container.fs.stat('index.js');
+    const dirents = (await container.fs.readdir('.', { withFileTypes: true })).filter(
+      (entry): entry is DirentLike => typeof entry !== 'string'
+    );
+    const revision: number = container.fs.revision;
+    console.log(node, archive.byteLength, stat.mtimeMs, dirents.length, revision);
+    const endpoints: readonly PublishedEndpoint[] = container.endpoints.current;
+    const unsubscribe = container.endpoints.on('published', ({ port, url }) => console.log(port, url, endpoints));
+    unsubscribe();
+    const process: MimicProcess = await container.spawn('node', ['index.js'], { cwd: container.workdir, env: { A: '1' } });
+    const writer = process.stdin.getWriter();
+    await writer.close();
+    await Promise.all([process.stdout.pipeTo(new WritableStream()), process.stderr.pipeTo(new WritableStream())]);
+    process.kill('SIGINT');
+    return await process.exit;
+  } catch (error) {
+    if (error instanceof MimicProcessCrashError) {
+      const code: 'PROCESS_CRASH' = error.code;
+      console.log(code, error.reason);
+      return error.pid;
+    }
+    throw error;
+  } finally {
+    await container.teardown();
+  }
+}
+
+export function removed(process: MimicProcess, endpoint: PublishedEndpoint, fs: FileSystemAPI): void {
+  // @ts-expect-error The merged output is not public.
+  void process.output;
+  // @ts-expect-error The stdin alias is not public.
+  void process.input;
+  // @ts-expect-error The opaque route is not public.
+  void endpoint.routeId;
+  // @ts-expect-error The virtual address is not public.
+  void endpoint.address;
+  // @ts-expect-error Programs change permissions through node:fs.
+  void fs.chmod;
+}
+`;

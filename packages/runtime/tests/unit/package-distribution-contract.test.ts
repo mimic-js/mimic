@@ -102,6 +102,47 @@ describe('package distribution contract', () => {
     );
   });
 
+  test('requires every declaration a public types entry imports to be packed', () => {
+    const root = createPackageFixture({ files: ['dist/index.js', 'dist/index.d.ts', 'dist/assets'] });
+    mkdirSync(join(root, 'dist/modules'));
+    writeFileSync(join(root, 'dist/modules/process.d.ts'), 'export interface Process {}\n');
+    writeFileSync(
+      join(root, 'dist/index.d.ts'),
+      "import type { Process } from './modules/process.js';\nexport declare class Mimic { spawn(): Process; }\n"
+    );
+
+    expectContractFailure(
+      root,
+      'public declarations import a file package.json files does not pack: ./dist/modules/process.d.ts in ./dist/index.d.ts'
+    );
+
+    rmSync(join(root, 'dist/modules/process.d.ts'));
+    expectContractFailure(root, 'public declarations import a missing file: ./modules/process.js in ./dist/index.d.ts');
+  });
+
+  test('accepts a bundler entry whose declarations import the packed runtime types', () => {
+    const exports = {
+      '.': { types: './dist/types/index.d.ts', browser: './dist/index.js', default: './dist/index.js' },
+      './vite': { types: './dist/vite/index.d.ts', default: './dist/vite/index.js' }
+    };
+    const root = createPackageFixture({
+      types: './dist/types/index.d.ts',
+      exports,
+      files: ['dist/index.js', 'dist/types/index.d.ts', 'dist/assets', 'dist/vite'],
+      peerDependencies: { vite: '>=5' }
+    });
+    mkdirSync(join(root, 'dist/types'));
+    writeFileSync(join(root, 'dist/types/index.d.ts'), "export type EmbedderPolicy = 'require-corp';\n");
+    mkdirSync(join(root, 'dist/vite'));
+    writeFileSync(join(root, 'dist/vite/index.js'), 'export function mimic() {}\n');
+    writeFileSync(
+      join(root, 'dist/vite/index.d.ts'),
+      "import type { Plugin } from 'vite';\nimport type { EmbedderPolicy } from '../types/index.js';\nexport declare function mimic(options?: { embedderPolicy?: EmbedderPolicy }): Plugin;\n"
+    );
+
+    expect(() => verifyPackageDistribution(root)).not.toThrow();
+  });
+
   test('rejects a packed import of a package that is not a declared dependency', () => {
     const root = createPackageFixture();
     writeFileSync(

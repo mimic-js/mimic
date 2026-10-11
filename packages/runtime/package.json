@@ -17,7 +17,7 @@
     "dist/assets",
     "dist/mimic.js",
     "dist/mimic.js.map",
-    "dist/types",
+    "dist/types/index.d.ts",
     "dist/vite",
     "LICENSE",
     "README.md"
@@ -52,7 +52,9 @@
         "cache": true
       },
       "typecheck": {
-        "dependsOn": []
+        "dependsOn": [
+          "build:package"
+        ]
       }
     }
   },

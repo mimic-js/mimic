@@ -97,6 +97,7 @@ container.endpoints.on('published', (endpoint) => {
 });
 
 const server = await container.spawn('node', ['server.mjs']);
+server.stdout.pipeTo(new WritableStream({ write: (chunk) => console.log(new TextDecoder().decode(chunk)) }));
 // Later: server.kill(); await container.teardown();
 ```
 

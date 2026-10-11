@@ -59,6 +59,7 @@ test(synchronizedWorkerCallsClaim.statement, async ({ page }) => {
   const result = await page.evaluate(
     async ({ entry, worker }) => {
       const { Mimic } = await import('/src/runtime/index.ts');
+      const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
       const runtime = await Mimic.boot({ workdir: '/home/synchronized-worker-calls' });
       try {
         await runtime.fs.mount({
@@ -68,7 +69,7 @@ test(synchronizedWorkerCallsClaim.statement, async ({ page }) => {
         const process = await runtime.spawn('node', ['entry.cjs']);
         const decoder = new TextDecoder();
         let output = '';
-        await process.output.pipeTo(
+        await mergeProcessOutput(process).pipeTo(
           new WritableStream({
             write(chunk) {
               output += decoder.decode(chunk, { stream: true });

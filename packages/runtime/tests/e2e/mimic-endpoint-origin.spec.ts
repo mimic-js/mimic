@@ -112,7 +112,7 @@ test(endpointOriginClaim.statement, async ({ page }) => {
       const urls = new Map<number, string>();
       const published = new Promise<void>((resolve) => {
         runtime.endpoints.on('published', (endpoint) => {
-          urls.set(endpoint.address.port, endpoint.url);
+          urls.set(endpoint.port, endpoint.url);
           if (urls.size === 2) resolve();
         });
       });

@@ -27,9 +27,9 @@ export function Preview({ endpoints }: { readonly endpoints: readonly PublishedE
     <section className="preview" aria-label="Preview">
       <div className="preview-bar">
         <select aria-label="Server" value={endpoint.url} onChange={(event) => setSelectedUrl(event.target.value)}>
-          {endpoints.map(({ address, url }) => (
+          {endpoints.map(({ port, url }) => (
             <option key={url} value={url}>
-              localhost:{address.port}
+              localhost:{port}
             </option>
           ))}
         </select>

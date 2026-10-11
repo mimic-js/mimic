@@ -66,6 +66,7 @@ test(outboundHttpBufferedBodyClaim.statement, async ({ context, page }) => {
 
   const runs = await page.evaluate(async (source) => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const decoder = new TextDecoder();
     const run = async (workdirName: string) => {
       const runtime = await Mimic.boot({ workdir: `/home/${workdirName}` });
@@ -74,7 +75,7 @@ test(outboundHttpBufferedBodyClaim.statement, async ({ context, page }) => {
         const process = await runtime.spawn('node', [`${runtime.workdir}/buffered-body.cjs`], {
           cwd: runtime.workdir
         });
-        const reader = process.output.getReader();
+        const reader = mergeProcessOutput(process).getReader();
         let output = '';
         while (true) {
           const { done, value } = await reader.read();
@@ -135,6 +136,7 @@ test(outboundHttpLifecycleClaim.statement, async ({ context, page }) => {
 
   const runs = await page.evaluate(async (source) => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const decoder = new TextDecoder();
     const run = async (workdirName: string) => {
       const runtime = await Mimic.boot({ workdir: `/home/${workdirName}` });
@@ -147,7 +149,7 @@ test(outboundHttpLifecycleClaim.statement, async ({ context, page }) => {
           [`${runtime.workdir}/outbound-lifecycle.cjs`],
           { cwd: runtime.workdir }
         );
-        const reader = process.output.getReader();
+        const reader = mergeProcessOutput(process).getReader();
         let output = '';
         while (true) {
           const { done, value } = await reader.read();
@@ -218,6 +220,7 @@ test(outboundNetworkClaim.statement, async ({ context, page }) => {
 
   const runs = await page.evaluate(async (source) => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const decoder = new TextDecoder();
 
     const run = async (workdirName: string) => {
@@ -225,7 +228,7 @@ test(outboundNetworkClaim.statement, async ({ context, page }) => {
       try {
         await runtime.fs.mount({ 'outbound.mjs': { file: { contents: source } } });
         const process = await runtime.spawn('node', [`${runtime.workdir}/outbound.mjs`], { cwd: runtime.workdir });
-        const reader = process.output.getReader();
+        const reader = mergeProcessOutput(process).getReader();
         let output = '';
         while (true) {
           const { done, value } = await reader.read();

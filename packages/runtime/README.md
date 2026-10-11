@@ -23,12 +23,14 @@ await container.fs.mount({
 container.endpoints.on('published', async (endpoint) => {
   // A URL that reaches the server: load it in an iframe, or request it
   // through the container, since the page's own fetch does not reach it.
-  console.log(endpoint.address.port, endpoint.url);
+  console.log(endpoint.port, endpoint.url);
   console.log(await (await container.endpoints.fetch(endpoint.url)).text());
 });
 
 const server = await container.spawn('node', ['server.mjs']);
-server.output.pipeTo(new WritableStream({ write: (chunk) => console.log(new TextDecoder().decode(chunk)) }));
+const print = () => new WritableStream({ write: (chunk) => console.log(new TextDecoder().decode(chunk)) });
+server.stdout.pipeTo(print());
+server.stderr.pipeTo(print());
 
 // Later: server.kill(); await container.teardown();
 ```

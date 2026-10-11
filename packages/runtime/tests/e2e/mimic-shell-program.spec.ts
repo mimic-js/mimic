@@ -23,7 +23,6 @@ test(shellProgramClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async () => {
     const { Mimic } = await import('/src/runtime/index.ts');
-    const decoder = new TextDecoder();
     const runtime = await Mimic.boot({ workdir: '/home/shell-program' });
 
     try {
@@ -78,7 +77,7 @@ test(shellProgramClaim.statement, async ({ page }) => {
 
       const run = async (command: string, args: string[], env: Record<string, string> = {}) => {
         const process = await runtime.spawn(command, args, { cwd: runtime.workdir, env });
-        const output = collectOutput(process.output);
+        const output = collectOutput(process.stdout);
         const stderr = collectOutput(process.stderr);
         const exitCode = await process.exit;
         return { pid: process.pid, exitCode, output: await output, stderr: await stderr };
@@ -111,6 +110,7 @@ test(shellProgramClaim.statement, async ({ page }) => {
 
     async function collectOutput(output: ReadableStream<Uint8Array>): Promise<string> {
       const reader = output.getReader();
+      const decoder = new TextDecoder();
       let text = '';
       try {
         while (true) {
@@ -127,7 +127,9 @@ test(shellProgramClaim.statement, async ({ page }) => {
   expect(result.shell.exitCode, result.shell.stderr).toBe(23);
   expect(result.lastStatus.exitCode, result.lastStatus.stderr).toBe(19);
   expect(result.shell.output).toBe('');
+  expect(result.shell.stderr).toBe('');
   expect(result.lastStatus.output).toBe('');
+  expect(result.lastStatus.stderr).toBe('');
 
   const [pipeline, subshellSnapshot, subshellInput, outerSnapshot] = result.redirected
     .trim()

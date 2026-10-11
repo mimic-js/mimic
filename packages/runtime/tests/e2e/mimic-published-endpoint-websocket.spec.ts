@@ -35,6 +35,7 @@ const failedRequests: string[] = [];
 
   const result = await page.evaluate(async ({ serverSource }) => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const runtime = await Mimic.boot({ workdir: '/home/published-endpoint-websocket' });
     const outputChunks: string[] = [];
     const decoder = new TextDecoder();
@@ -60,7 +61,7 @@ const failedRequests: string[] = [];
       });
       process = await runtime.spawn('node', [`${runtime.workdir}/server.mjs`], { cwd: runtime.workdir });
       const outputDone = (async () => {
-        const reader = process!.output.getReader();
+        const reader = mergeProcessOutput(process!).getReader();
         while (true) {
           const { value, done } = await reader.read();
           if (done) return;

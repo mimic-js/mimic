@@ -23,6 +23,7 @@ test(runtimeProgramsClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async () => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const decoder = new TextDecoder();
     const runtime = await Mimic.boot({ workdir: '/home/runtime-programs' });
     const cwd = `${runtime.workdir}/nested`;
@@ -177,7 +178,7 @@ test(runtimeProgramsClaim.statement, async ({ page }) => {
     const rebooted = await Mimic.boot({ workdir: '/home/runtime-programs-reboot' });
     try {
       const process = await rebooted.spawn('echo', ['runtime-reboot']);
-      const output = collectOutput(process.output);
+      const output = collectOutput(mergeProcessOutput(process));
       const exitCode = await process.exit;
       return {
         ...initial!,
@@ -199,7 +200,7 @@ test(runtimeProgramsClaim.statement, async ({ page }) => {
       output: string;
     }> {
       const process = await runtime.spawn(command, args, { cwd: commandCwd, env });
-      const output = collectOutput(process.output);
+      const output = collectOutput(mergeProcessOutput(process));
       const exitCode = await process.exit;
       return {
         exitCode,

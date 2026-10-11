@@ -25,6 +25,7 @@ test(committedVfsWatchClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async () => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const runtime = await Mimic.boot({ workdir: '/home/vfs-committed-watches' });
     const root = `${runtime.workdir}/watched`;
     let watched:
@@ -72,7 +73,7 @@ test(committedVfsWatchClaim.statement, async ({ page }) => {
         resolveReady = resolve;
         rejectReady = reject;
       });
-      const output = readProcessOutput(process.output, (text) => {
+      const output = readProcessOutput(mergeProcessOutput(process), (text) => {
         if (text.includes('"type":"ready"')) resolveReady();
       });
       void output.then((text) => {
@@ -109,7 +110,7 @@ test(committedVfsWatchClaim.statement, async ({ page }) => {
       const process = await rebooted.spawn('node', [`${rebooted.workdir}/reboot-entry.cjs`], {
         cwd: rebooted.workdir
       });
-      const output = readProcessOutput(process.output);
+      const output = readProcessOutput(mergeProcessOutput(process));
       const exitCode = await process.exit;
       return { ...watched, reboot: { exitCode, output: (await output).trim() } };
     } finally {

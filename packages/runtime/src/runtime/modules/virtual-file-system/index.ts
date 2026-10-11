@@ -36,7 +36,6 @@ export type {
 } from './mailbox';
 export type {
   DirentLike,
-  ExportedFileSystemTree,
   FileSystemArchiveFormat,
   FileStatLike,
   FileSystemAPI,

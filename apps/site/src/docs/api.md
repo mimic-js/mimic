@@ -9,16 +9,22 @@ headers a page needs.
 import { Mimic, MimicProcessCrashError } from '@mimic-js/runtime';
 import type {
   BootOptions,
+  DirentLike,
   EmbedderPolicy,
-  ExportedFileSystemTree,
+  FileStatLike,
   FileSystemAPI,
   FileSystemTree,
+  FileSystemTreeNode,
   MimicProcess,
+  MimicProcessCrashErrorCode,
   PublishedEndpoint,
   PublishedEndpointCollection,
   SpawnOptions
 } from '@mimic-js/runtime';
 ```
+
+The package ships these declarations in one self-contained file,
+`dist/types/index.d.ts`.
 
 **One container runs per page at a time.** `Mimic.boot()` rejects while
 another container of the page is booted or booting; call `teardown()` first.
@@ -73,6 +79,19 @@ asynchronous. A relative path resolves against `workdir`. A failed operation
 rejects with an error whose `code` names the cause, such as `NOT_FOUND`. After
 `teardown()`, every method rejects.
 
+| Member | Does |
+| --- | --- |
+| [`mount()`](#fs-mount), [`export()`](#fs-export) | Write a tree or an archive; read a directory as either |
+| [`readFile()`](#fs-readfile), [`writeFile()`](#fs-writefile) | Read and write a file |
+| [`readdir()`](#fs-readdir), [`mkdir()`](#fs-mkdir), [`rm()`](#fs-rm), [`rename()`](#fs-rename) | List, create, remove and move entries |
+| [`stat()`, `lstat()`](#fs-stat-and-fs-lstat), [`exists()`](#fs-exists) | Describe a path |
+| [`symlink()`, `readlink()`, `realpath()`](#fs-symlink-fs-readlink-and-fs-realpath) | Make and follow symbolic links |
+| [`revision`](#fs-revision) | A number that changes whenever the file system changed |
+
+Hard links, permission bits and modification times are changed by programs,
+through `node:fs` (`link`, `chmod`, `utimes`); a mounted tree may carry `mode`
+and `mtimeMs`.
+
 ### fs.mount()
 
 ```ts
@@ -91,7 +110,7 @@ gzip-compressed archives must be decompressed first.
 ### fs.export()
 
 ```ts
-export(path?: string, options?: { format?: 'json' }): Promise<ExportedFileSystemTree>
+export(path?: string, options?: { format?: 'json' }): Promise<FileSystemTree>
 export(path: string | undefined, options: { format: 'zip' | 'tar' }): Promise<Uint8Array>
 ```
 
@@ -192,15 +211,13 @@ type FileStatLike = {
 
 `stat` follows symlinks; `lstat` describes the link itself.
 
-### fs.exists() and fs.access()
+### fs.exists()
 
 ```ts
 exists(path: string): Promise<boolean>
-access(path: string): Promise<void>
 ```
 
-`exists` resolves whether the path exists; `access` resolves when it does and
-rejects when it does not.
+Resolves whether the path exists.
 
 ### fs.symlink(), fs.readlink() and fs.realpath()
 
@@ -213,35 +230,18 @@ realpath(path: string): Promise<string>
 Creates a symbolic link at `path` pointing to `target`, reads a link's target,
 and resolves a path with every symlink followed.
 
-### fs.link()
-
-```ts
-link(existingPath: string, newPath: string): Promise<void>
-```
-
-Creates a hard link: a second name for the same file.
-
-### fs.chmod() and fs.utimes()
-
-```ts
-chmod(path: string, mode: number): Promise<void>
-utimes(path: string, mtimeMs: number): Promise<void>
-```
-
-Sets the permission bits, or the modification time in milliseconds since the
-epoch.
-
 ### fs.revision
 
 ```ts
 readonly revision: number
 ```
 
-The latest revision of the file system the page has seen. Every committed
-change increases it, and each call through `container.fs` updates it to the
-revision that call saw. Programs change files without notifying the page, so
-to notice their changes, make a cheap call such as `exists(workdir)` and
-compare `revision` with its previous value.
+A number that changes whenever the file system changed; cheap to read, for
+polling a file tree. Every committed change increases it, and each call
+through `container.fs` updates it to the revision that call saw. Programs
+change files without notifying the page, so to notice their changes, make a
+cheap call such as `exists(workdir)` and compare `revision` with its previous
+value.
 
 ## container.spawn()
 
@@ -252,8 +252,6 @@ spawn(command: string, options?: SpawnOptions): Promise<MimicProcess>
 interface SpawnOptions {
   cwd?: string;
   env?: Record<string, string>;
-  output?: boolean;
-  terminal?: { cols: number; rows: number };
 }
 ```
 
@@ -269,30 +267,27 @@ package bins on `PATH`, and scripts with a shebang. For a command line, use
   `TMPDIR=/tmp`, `USER` and `LOGNAME` (`browser`), and
   `PUPPETEER_SKIP_DOWNLOAD=1` and `CYPRESS_INSTALL_BINARY=0`, since no browser
   binary a package downloads could run.
-- `output` and `terminal` are accepted and have no effect yet: programs see
-  no terminal, and
-  `output` is always available. Set `FORCE_COLOR=1` in `env` for coloured
-  output.
+
+Programs see no terminal: set `FORCE_COLOR=1` in `env` for coloured output.
 
 ## MimicProcess
 
 ```ts
-type MimicProcess = {
+interface MimicProcess {
   readonly pid: number;
-  readonly input: WritableStream<Uint8Array>;   // the same stream as stdin
-  readonly output: ReadableStream<Uint8Array>;  // stdout and stderr, interleaved
   readonly stdin: WritableStream<Uint8Array>;
   readonly stdout: ReadableStream<Uint8Array>;
   readonly stderr: ReadableStream<Uint8Array>;
   readonly exit: Promise<number>;
   kill(signal?: 'SIGTERM' | 'SIGKILL' | 'SIGINT'): void;
-};
+}
 ```
 
 The streams carry bytes; decode text with `TextDecoder`, and write text with
-`TextEncoder`. `output` interleaves stdout and stderr as a terminal shows them,
-and keeps at most 64 KiB nobody has read, so a slow reader loses output rather
-than holding the program back. Closing `input` ends the program's stdin.
+`TextEncoder`. Closing `stdin` ends the program's input. `stdout` and `stderr`
+apply backpressure: once 64 KiB wait unread in one, the program's writes to
+it wait for a reader. Read both, as a terminal does by piping each into it,
+or `cancel()` the one you do not need.
 
 `exit` resolves with the exit code; a signal that ends the process gives
 `128 + n` (`130` for `SIGINT`, `137` for `SIGKILL`, `143` for `SIGTERM`).
@@ -304,9 +299,10 @@ There is no `resize()`: programs see no terminal.
 
 ```ts
 const install = await container.spawn('npm', ['install']);
-install.output.pipeTo(new WritableStream({
+const print = () => new WritableStream<Uint8Array>({
   write: (chunk) => console.log(new TextDecoder().decode(chunk))
-}));
+});
+await Promise.all([install.stdout.pipeTo(print()), install.stderr.pipeTo(print())]);
 if ((await install.exit) !== 0) throw new Error('npm install failed');
 ```
 
@@ -315,15 +311,18 @@ if ((await install.exit) !== 0) throw new Error('npm install failed');
 ```ts
 class MimicProcessCrashError extends Error {
   readonly name: 'MimicProcessCrashError';
-  readonly code: 'PROCESS_CRASH';
+  readonly code: MimicProcessCrashErrorCode;
   readonly pid: number;
   readonly reason: string;
   readonly cause: unknown;
 }
+
+type MimicProcessCrashErrorCode = 'PROCESS_CRASH';
 ```
 
 The error `exit` rejects with when a process crashed, for example when its
 worker failed. `reason` says why, without the process id the message adds.
+Narrow with `instanceof MimicProcessCrashError`, or by `code`.
 
 ## container.endpoints
 
@@ -336,12 +335,10 @@ interface PublishedEndpointCollection {
   fetch(input: string | URL, init?: RequestInit): Promise<Response>;
 }
 
-type PublishedEndpoint = {
-  readonly routeId: string;
-  readonly protocol: 'http' | 'https';
-  readonly address: { readonly host: string; readonly port: number };
+interface PublishedEndpoint {
+  readonly port: number;
   readonly url: string;
-};
+}
 ```
 
 When a program's HTTP or WebSocket server listens on a port, the port is
@@ -356,10 +353,9 @@ published as a URL that your page can load in an iframe or open in a tab.
   `fetch` does not reach an endpoint, which is served by a Service Worker
   outside the page's scope. Read the response before `teardown()`.
 
-Of an endpoint, `address.port` is the port the program listened on and `url`
-is where it is served: under the page's origin, the preview origin, or with a
-wildcard preview origin `https://<epoch>--<port>.<domain>/`. `routeId`
-identifies the listener serving the port.
+Of an endpoint, `port` is the port the program listened on and `url` is where
+it is served: under the page's origin, the preview origin, or with a wildcard
+preview origin `https://<epoch>--<port>.<domain>/`.
 
 ```ts
 container.endpoints.on('published', (endpoint) => {
@@ -396,8 +392,6 @@ type FileSystemTreeNode = (
   readonly mtimeMs?: number;
   readonly mode?: number;
 };
-
-type ExportedFileSystemTree = FileSystemTree;
 ```
 
 A directory as a nested object: each key is an entry name, and each value a
@@ -463,6 +457,8 @@ either policy. A preview origin also needs the headers named under
 ```ts
 type EmbedderPolicy = 'require-corp' | 'credentialless';
 ```
+
+The same type `@mimic-js/runtime` exports, re-exported here.
 
 `require-corp` loads a cross-origin resource only when its response allows
 it; `credentialless` loads it without credentials instead, which spares the

@@ -38,6 +38,7 @@ test(nodeCompatibilityClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async () => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const firstRuntime = await Mimic.boot({ workdir: '/home/node-compatibility' });
     let first: { exitCode: number; output: string };
     let sameRuntime: { exitCode: number; output: string };
@@ -132,7 +133,7 @@ test(nodeCompatibilityClaim.statement, async ({ page }) => {
 
     async function run(runtime: InstanceType<typeof Mimic>, entry: string) {
       const process = await runtime.spawn('node', [entry]);
-      const output = await collectOutput(process.output);
+      const output = await collectOutput(mergeProcessOutput(process));
       return { exitCode: await process.exit, output };
     }
 
@@ -191,6 +192,7 @@ test(nodePreloadCustomizationHooksClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async () => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const firstRuntime = await Mimic.boot({ workdir: '/home/node-preload-hooks' });
     const firstCleanup = { tornDown: false };
 
@@ -296,7 +298,7 @@ test(nodePreloadCustomizationHooksClaim.statement, async ({ page }) => {
 
     async function run(runtime: InstanceType<typeof Mimic>, args: string[]) {
       const process = await runtime.spawn('node', args);
-      const output = await collectOutput(process.output);
+      const output = await collectOutput(mergeProcessOutput(process));
       return { exitCode: await process.exit, output };
     }
 

@@ -56,10 +56,11 @@ test(virtualNetworkCompatibilityClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async (crashMessage) => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const runtime = await Mimic.boot({ workdir: '/home/virtual-network' });
     const readOutput = async (process: Awaited<ReturnType<typeof runtime.spawn>>) => {
       const decoder = new TextDecoder();
-      const reader = process.output.getReader();
+      const reader = mergeProcessOutput(process).getReader();
       let text = '';
       while (true) {
         const { done, value } = await reader.read();
@@ -180,7 +181,7 @@ test(virtualNetworkCompatibilityClaim.statement, async ({ page }) => {
 
       const waitForPort = (port: number) => new Promise<void>((resolve) => {
         const unsubscribe = runtime.endpoints.on('published', (endpoint) => {
-          if (endpoint.address.port !== port) return;
+          if (endpoint.port !== port) return;
           unsubscribe();
           resolve();
         });

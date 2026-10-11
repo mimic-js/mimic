@@ -138,7 +138,7 @@ export async function endpoint(id: number, timeoutMs: number): Promise<Readonly<
             throw new Error(`the endpoint ${candidate.url} is not on the origin of the test page`);
           }
           claimedEndpoints.add(candidate.url);
-          return { url: candidate.url, port: candidate.address.port };
+          return { url: candidate.url, port: candidate.port };
         }
         await new Promise((resolve) => setTimeout(resolve, 20));
       }

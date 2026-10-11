@@ -1,6 +1,5 @@
 import type {
   DirentLike,
-  ExportedFileSystemTree,
   FileSystemArchiveFormat,
   FileStatLike,
   FileSystemTree,
@@ -35,7 +34,7 @@ export interface AsyncVirtualFileSystemClient extends RevisionedFileSystemAPI {
   commit(request: VfsCommitRequest): Promise<Extract<VfsCommitResult, { readonly status: 'committed' }>>;
   observeRevision(revision: number): void;
   exportArchive(path: string | undefined, format: FileSystemArchiveFormat): Promise<Uint8Array>;
-  exportTree(path?: string): Promise<ExportedFileSystemTree>;
+  exportTree(path?: string): Promise<FileSystemTree>;
   exists(path: string): Promise<boolean>;
   lstat(path: string): Promise<FileStatLike>;
   mount(tree: FileSystemTree, mountPoint?: string): Promise<void>;
@@ -251,7 +250,7 @@ class AsyncVirtualFileSystemClientImplementation implements AsyncVirtualFileSyst
     this.observeRevision(result.revision);
   }
 
-  async exportTree(path?: string): Promise<ExportedFileSystemTree> {
+  async exportTree(path?: string): Promise<FileSystemTree> {
     this.assertOpen();
     const result = await this.#remote.exportTree(path);
     this.observeRevision(result.revision);

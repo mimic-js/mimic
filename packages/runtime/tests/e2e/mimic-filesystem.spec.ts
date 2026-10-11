@@ -37,6 +37,7 @@ test(openDescriptorCompatibilityClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async () => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const runtime = await Mimic.boot({ workdir: '/home/descriptor' });
     try {
       await runtime.fs.mount({
@@ -62,7 +63,7 @@ test(openDescriptorCompatibilityClaim.statement, async ({ page }) => {
         }
       });
       const process = await runtime.spawn('node', ['/home/descriptor/descriptor.mjs']);
-      const output = await new Response(process.output).text();
+      const output = await new Response(mergeProcessOutput(process)).text();
       return { exit: await process.exit, output };
     } finally {
       await runtime.teardown();
@@ -106,6 +107,7 @@ test(posixVfsCompatibilityClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async () => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const runtime = await Mimic.boot({ workdir: '/home/filesystem' });
 
     try {
@@ -208,7 +210,7 @@ test(posixVfsCompatibilityClaim.statement, async ({ page }) => {
       });
 
       const process = await runtime.spawn('node', ['/home/filesystem/filesystem.mjs']);
-      const output = await collectOutput(process.output);
+      const output = await collectOutput(mergeProcessOutput(process));
       const exit = await process.exit;
       if (exit !== 0) throw new Error(output);
       const publicStat = await runtime.fs.stat('/home/filesystem/work/payload-link');

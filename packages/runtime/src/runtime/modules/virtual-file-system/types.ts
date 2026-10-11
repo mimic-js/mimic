@@ -19,8 +19,6 @@ export type FileSystemTreeNode = (
   readonly mode?: number;
 };
 
-export type ExportedFileSystemTree = FileSystemTree;
-export type ExportedFileSystemTreeNode = FileSystemTreeNode;
 export type FileSystemArchiveFormat = 'zip' | 'tar';
 
 export interface FileSystemAPI {
@@ -241,7 +239,7 @@ export interface VirtualFileSystemApi {
   ): VfsRevisioned<{ readonly data: Uint8Array }>;
   writeOpenFile(id: number, data: Uint8Array, position?: number): VfsCommitEvent;
   statOpenFile(id: number): VfsRevisioned<{ readonly stat: VfsStatData }>;
-  exportTree(path?: string): VfsRevisioned<{ readonly tree: ExportedFileSystemTree }>;
+  exportTree(path?: string): VfsRevisioned<{ readonly tree: FileSystemTree }>;
   exportArchive(
     path: string | undefined,
     format: FileSystemArchiveFormat

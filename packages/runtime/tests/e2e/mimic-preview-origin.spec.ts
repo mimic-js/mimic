@@ -182,6 +182,7 @@ test(runtimeOriginClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async (previewOrigin) => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     // Something of the page's origin a project must not see: a database and a cookie.
     await new Promise<void>((resolve, reject) => {
       const request = indexedDB.open('page-secret', 1);
@@ -209,7 +210,7 @@ test(runtimeOriginClaim.statement, async ({ page }) => {
         '}));'
       ].join('\n')
     ]);
-    const probeOutput = await new Response(probe.output).text();
+    const probeOutput = await new Response(mergeProcessOutput(probe)).text();
     const probeExit = await probe.exit;
     const pending = await runtime.spawn('node', ['-e', 'await new Promise(() => {});']);
     const frame = document.querySelector('iframe[title="Mimic runtime host"]');

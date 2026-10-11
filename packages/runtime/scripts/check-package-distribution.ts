@@ -174,7 +174,7 @@ function validateDependencies(
     ...Object.keys(isRecord(manifest.peerDependencies) ? manifest.peerDependencies : {})
   ]);
   const imported = new Set<string>();
-  for (const file of [...packedScripts(root, packedFiles), ...publicDeclarations(root, manifest)]) {
+  for (const file of [...packedScripts(root, packedFiles), ...publicDeclarations(root, manifest, packedFiles, issues)]) {
     for (const specifier of importSpecifiers(file)) {
       const name = importedPackageName(specifier);
       if (name === undefined || imported.has(name)) continue;
@@ -212,10 +212,15 @@ function packedScripts(root: string, packedFiles: readonly string[]): readonly s
 
 /**
  * The declaration files a consumer's compiler loads: the public types entries
- * and what they reach through relative imports. Declarations of internal
- * modules that no public type mentions are packed but never loaded.
+ * and what they reach through relative imports. Each must be packed, or a
+ * consumer's compiler would find no declaration where one is imported.
  */
-function publicDeclarations(root: string, manifest: JsonRecord): readonly string[] {
+function publicDeclarations(
+  root: string,
+  manifest: JsonRecord,
+  packedFiles: readonly string[],
+  issues: string[]
+): readonly string[] {
   const reached = new Set<string>();
   const visit = (path: string): void => {
     if (reached.has(path) || !existsSync(path) || !statSync(path).isFile()) return;
@@ -223,12 +228,23 @@ function publicDeclarations(root: string, manifest: JsonRecord): readonly string
     for (const fileName of importSpecifiers(path)) {
       if (!fileName.startsWith('.')) continue;
       const target = resolve(dirname(path), fileName);
-      for (const candidate of [`${target}.d.ts`, resolve(target, 'index.d.ts'), target]) {
-        if (existsSync(candidate) && statSync(candidate).isFile()) {
-          visit(candidate);
-          break;
-        }
+      const candidates = [
+        ...(/\.[cm]?js$/u.test(target) ? [target.replace(/\.([cm]?)js$/u, '.d.$1ts')] : []),
+        `${target}.d.ts`,
+        resolve(target, 'index.d.ts'),
+        target
+      ];
+      const declaration = candidates.find((candidate) => existsSync(candidate) && statSync(candidate).isFile());
+      const importer = `./${normalizePackedPath(relative(root, path))}`;
+      if (declaration === undefined) {
+        issues.push(`public declarations import a missing file: ${fileName} in ${importer}`);
+        continue;
       }
+      const packedPath = normalizePackedPath(relative(root, declaration));
+      if (!isPacked(packedPath, packedFiles)) {
+        issues.push(`public declarations import a file package.json files does not pack: ./${packedPath} in ${importer}`);
+      }
+      visit(declaration);
     }
   };
   for (const entry of Object.values(isRecord(manifest.exports) ? manifest.exports : {})) {

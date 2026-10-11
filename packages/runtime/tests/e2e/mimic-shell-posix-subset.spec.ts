@@ -21,6 +21,7 @@ test(shellProgramClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async () => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const decoder = new TextDecoder();
     const runtime = await Mimic.boot({ workdir: '/home/shell-program' });
     const root = runtime.workdir;
@@ -152,7 +153,7 @@ test(shellProgramClaim.statement, async ({ page }) => {
 
     async function run(command: string, args: string[]): Promise<{ exitCode: number; output: string }> {
       const process = await runtime.spawn(command, args, { cwd: root });
-      const output = collectOutput(process.output);
+      const output = collectOutput(mergeProcessOutput(process));
       const exitCode = await process.exit;
       return { exitCode, output: await output };
     }

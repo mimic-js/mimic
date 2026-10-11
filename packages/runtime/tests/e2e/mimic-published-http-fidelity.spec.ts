@@ -25,6 +25,7 @@ test(publishedHttpFidelityClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async (source) => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const decoder = new TextDecoder();
     const encoder = new TextEncoder();
 
@@ -37,17 +38,17 @@ test(publishedHttpFidelityClaim.statement, async ({ page }) => {
         const ready = new Promise<{ port: number; url: string }>((resolve) => {
           const current = runtime.endpoints.current[0];
           if (current) {
-            resolve({ port: current.address.port, url: current.url });
+            resolve({ port: current.port, url: current.url });
             return;
           }
           const unsubscribe = runtime.endpoints.on('published', (endpoint) => {
             unsubscribe();
-            resolve({ port: endpoint.address.port, url: endpoint.url });
+            resolve({ port: endpoint.port, url: endpoint.url });
           });
         });
         const process = await runtime.spawn('node', [`${runtime.workdir}/server.mjs`], { cwd: runtime.workdir });
         const output = (async () => {
-          const reader = process.output.getReader();
+          const reader = mergeProcessOutput(process).getReader();
           try {
             while (true) {
               const { value, done } = await reader.read();

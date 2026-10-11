@@ -25,6 +25,7 @@ test(publishedEndpointCookieJarClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async (source) => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const physicalCookieName = 'mimic_physical_cookie';
     const observedProcessOutput: string[] = [];
     document.cookie = `${physicalCookieName}=must-not-leak; Path=/`;
@@ -40,14 +41,14 @@ test(publishedEndpointCookieJarClaim.statement, async ({ page }) => {
     ) => {
       const ready = new Promise<string>((resolve) => {
         const current = runtime.endpoints.current.find(
-          (endpoint: { address: { port: number } }) => endpoint.address.port === port
+          (endpoint: { port: number }) => endpoint.port === port
         );
         if (current) {
           resolve(current.url);
           return;
         }
         const unsubscribe = runtime.endpoints.on('published', (endpoint) => {
-          if (endpoint.address.port !== port) return;
+          if (endpoint.port !== port) return;
           unsubscribe();
           resolve(endpoint.url);
         });
@@ -57,7 +58,7 @@ test(publishedEndpointCookieJarClaim.statement, async ({ page }) => {
         [`${runtime.workdir}/server.mjs`, String(port)],
         { cwd: runtime.workdir }
       );
-      const output = readProcessOutput(process.output);
+      const output = readProcessOutput(mergeProcessOutput(process));
       const url = await Promise.race([
         ready,
         process.exit.then((exitCode) => {

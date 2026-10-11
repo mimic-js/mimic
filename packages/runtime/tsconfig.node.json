@@ -6,7 +6,11 @@
     "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "noEmit": true
+    "noEmit": true,
+    "rootDirs": [
+      "src",
+      "dist"
+    ]
   },
   "include": [
     "vite.config.ts",

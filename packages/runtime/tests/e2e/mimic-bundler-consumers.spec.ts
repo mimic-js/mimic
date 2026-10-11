@@ -87,13 +87,16 @@ for (const [kind, title] of [
 
           const database = await runtime.spawn('node', ['database.mjs']);
           let databaseOutput = '';
-          const reader = database.output.getReader();
-          const decoder = new TextDecoder();
-          for (;;) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            databaseOutput += decoder.decode(value, { stream: true });
-          }
+          const read = async (stream: ReadableStream<Uint8Array>) => {
+            const reader = stream.getReader();
+            const decoder = new TextDecoder();
+            for (;;) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              databaseOutput += decoder.decode(value, { stream: true });
+            }
+          };
+          await Promise.all([read(database.stdout), read(database.stderr)]);
           return {
             endpointSameOrigin: new URL(url).origin === location.origin,
             response: { status: response.status, body },

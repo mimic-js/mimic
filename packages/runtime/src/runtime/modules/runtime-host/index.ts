@@ -7,14 +7,7 @@ export type {
   RuntimeHost
 } from './runtime-host';
 export { normalizePath } from '../virtual-file-system';
-export type {
-  AsyncVirtualFileSystemClient,
-  DirentLike,
-  ExportedFileSystemTree,
-  FileStatLike,
-  FileSystemTree,
-  RevisionedFileSystemAPI
-} from '../virtual-file-system';
+export type { AsyncVirtualFileSystemClient } from '../virtual-file-system';
 export { MimicProcessCrashError } from '../process-execution';
 export type {
   RuntimeProgramProcess
@@ -22,6 +15,5 @@ export type {
 export { normalizePreviewOrigin } from '../published-endpoint';
 export type {
   PublishedEndpoint,
-  PublishedEndpointCollection,
-  PublishedEndpointLifecycleEvent
+  PublishedEndpointCollection
 } from '../published-endpoint';

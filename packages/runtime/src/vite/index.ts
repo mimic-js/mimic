@@ -1,13 +1,10 @@
 import type { Plugin } from 'vite';
+// The runtime entry declares the policy. The specifier is the path between the
+// two built declaration files (dist/vite to dist/types), which `rootDirs`
+// resolves while compiling: the plugin is compiled after the runtime's types.
+import type { EmbedderPolicy } from '../types/index.js';
 
-/**
- * The `Cross-Origin-Embedder-Policy` of the embedding page. `require-corp`
- * loads a cross-origin resource only when its response allows it;
- * `credentialless` loads it without credentials instead, which spares the
- * page CORP headers on every CDN it uses (Chromium and Firefox; Safari needs
- * `require-corp`). Pass the same value to `Mimic.boot()`.
- */
-export type EmbedderPolicy = 'require-corp' | 'credentialless';
+export type { EmbedderPolicy };
 
 /**
  * The response headers Mimic needs from the server of the embedding

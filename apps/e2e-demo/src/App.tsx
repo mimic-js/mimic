@@ -16,8 +16,6 @@ import vuePackage from '../../../packages/runtime/compatibility/fixtures/vue-3-v
 import { Mimic } from '@mimic-js/runtime'
 import type { MimicProcess, FileSystemTree } from '@mimic-js/runtime'
 
-const decoder = new TextDecoder()
-
 const initialApp = `export function renderApp(target) {
   target.innerHTML = \`
     <main class="demo-shell">
@@ -815,16 +813,21 @@ export function App() {
 
     const pipeProcess = useCallback(
         async (process: MimicProcess) => {
-            const reader = process.output.getReader()
-            try {
-                while (true) {
-                    const { value, done } = await reader.read()
-                    if (done) break
-                    appendTerminal(decoder.decode(value))
+            const pipe = async (stream: ReadableStream<Uint8Array>) => {
+                const decoder = new TextDecoder()
+                const reader = stream.getReader()
+                try {
+                    while (true) {
+                        const { value, done } = await reader.read()
+                        const text = decoder.decode(value, { stream: !done })
+                        if (text) appendTerminal(text)
+                        if (done) break
+                    }
+                } finally {
+                    reader.releaseLock()
                 }
-            } finally {
-                reader.releaseLock()
             }
+            await Promise.all([pipe(process.stdout), pipe(process.stderr)])
         },
         [appendTerminal],
     )
@@ -850,15 +853,15 @@ export function App() {
             }
             setContainer(runtime)
             containerRef.current = runtime
-            runtime.endpoints.on('published', ({ address, url }) => {
+            runtime.endpoints.on('published', ({ port, url }) => {
                 if (runSequence !== runSequenceRef.current) return
-                appendTerminal(`port open: ${address.port} ${url}\n`)
+                appendTerminal(`port open: ${port} ${url}\n`)
                 setPreviewUrl(url)
                 setStatus('ready')
             })
-            runtime.endpoints.on('unpublished', ({ address, url }) => {
+            runtime.endpoints.on('unpublished', ({ port, url }) => {
                 if (runSequence !== runSequenceRef.current) return
-                appendTerminal(`port close: ${address.port} ${url}\n`)
+                appendTerminal(`port close: ${port} ${url}\n`)
                 setPreviewUrl((current) => current === url ? '' : current)
             })
 

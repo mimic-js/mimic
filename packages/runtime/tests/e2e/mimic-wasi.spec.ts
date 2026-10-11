@@ -296,6 +296,7 @@ test(wasiCompatibilityClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async ({ preview1Program }) => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const decoder = new TextDecoder();
 
     return {
@@ -511,7 +512,7 @@ test(wasiCompatibilityClaim.statement, async ({ page }) => {
           cwd: runtime.workdir,
           env: { WASI_WORKDIR: workdirName }
         });
-        const stdout = await collectBytes(process.output);
+        const stdout = await collectBytes(mergeProcessOutput(process));
         const exitCode = await process.exit;
         const receipt =
           exitCode === 0

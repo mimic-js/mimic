@@ -1,7 +1,7 @@
 import { statDataFrom } from './projections';
 import type {
-  ExportedFileSystemTree,
   FileSystemArchiveFormat,
+  FileSystemTree,
   VfsCommitJournalRecord,
   VfsCommitJournalResult,
   VfsCommitRequest,
@@ -51,7 +51,7 @@ export interface VirtualFileSystemAuthority {
   stat(path: string, followFinal: boolean): VfsResult<{ readonly stat: VfsStatData }>;
   access(path: string): VfsResult<Record<never, never>>;
   realpath(path: string): VfsResult<{ readonly path: string }>;
-  exportTree(path?: string): VfsResult<{ readonly tree: ExportedFileSystemTree }>;
+  exportTree(path?: string): VfsResult<{ readonly tree: FileSystemTree }>;
   exportArchive(
     path: string | undefined,
     format: FileSystemArchiveFormat

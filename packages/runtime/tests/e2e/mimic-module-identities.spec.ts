@@ -22,6 +22,7 @@ test(moduleIdentityCompatibilityClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async () => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const runtime = await Mimic.boot({ workdir: '/home/module-identities' });
     try {
       await runtime.fs.mount({
@@ -154,7 +155,7 @@ test(moduleIdentityCompatibilityClaim.statement, async ({ page }) => {
       });
 
       const process = await runtime.spawn('node', ['/home/module-identities/entry.cjs']);
-      const output = await collectOutput(process.output);
+      const output = await collectOutput(mergeProcessOutput(process));
       return { exitCode: await process.exit, output };
     } finally {
       await runtime.teardown();

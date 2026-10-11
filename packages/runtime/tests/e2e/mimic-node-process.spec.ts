@@ -23,6 +23,7 @@ test(nodeProcessClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async () => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const runtime = await Mimic.boot({ workdir: '/home/node-process' });
     try {
       await runtime.fs.mount({
@@ -89,7 +90,7 @@ test(nodeProcessClaim.statement, async ({ page }) => {
 
     async function run(args: string[]) {
       const process = await runtime.spawn('node', args);
-      const reader = process.output.getReader();
+      const reader = mergeProcessOutput(process).getReader();
       const decoder = new TextDecoder();
       let output = '';
       while (true) {

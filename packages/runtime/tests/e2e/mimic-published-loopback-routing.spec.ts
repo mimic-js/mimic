@@ -155,7 +155,7 @@ test(publishedLoopbackRoutingClaim.statement, async ({ page }) => {
     }).loopbackRuntime;
     const published = new Promise<void>((resolve) => {
       const unsubscribe = runtime.endpoints.on('published', (endpoint) => {
-        if (endpoint.address.port !== apiPort) return;
+        if (endpoint.port !== apiPort) return;
         unsubscribe();
         resolve();
       });

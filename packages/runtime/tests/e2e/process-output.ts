@@ -38,6 +38,44 @@ export function collectProcessOutput(
   }
 }
 
+/**
+ * One stream of a process's standard output and error, chunk by chunk as
+ * they arrive, as a terminal shows them. Both streams are read eagerly.
+ */
+export function mergeProcessOutput(process: ProcessStreams): ReadableStream<Uint8Array> {
+  const readers = [process.stdout.getReader(), process.stderr.getReader()];
+  let open = readers.length;
+  let settled = false;
+  return new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const reader of readers) {
+        void (async () => {
+          try {
+            while (true) {
+              const { value, done } = await reader.read();
+              if (done) break;
+              if (!settled) controller.enqueue(value);
+            }
+            open -= 1;
+            if (open === 0 && !settled) {
+              settled = true;
+              controller.close();
+            }
+          } catch (error) {
+            if (settled) return;
+            settled = true;
+            controller.error(error);
+          }
+        })();
+      }
+    },
+    async cancel(reason) {
+      settled = true;
+      await Promise.all(readers.map((reader) => reader.cancel(reason)));
+    }
+  });
+}
+
 export async function runProcessToExit(
   process: MimicProcess,
   description: string,

@@ -25,6 +25,7 @@ test(nodeNetworkAdaptersClaim.statement, async ({ page }) => {
 
   const result = await page.evaluate(async () => {
     const { Mimic } = await import('/src/runtime/index.ts');
+    const { mergeProcessOutput } = await import('/tests/e2e/process-output.ts');
     const decoder = new TextDecoder();
 
     const run = async (owner: string, stopMode: 'shutdown' | 'teardown', staleUrl?: string) => {
@@ -255,13 +256,13 @@ test(nodeNetworkAdaptersClaim.statement, async ({ page }) => {
         const ready = new Promise<{ port: number; url: string }>((resolve) => {
           const unsubscribe = runtime.endpoints.on('published', (endpoint) => {
             unsubscribe();
-            resolve({ port: endpoint.address.port, url: endpoint.url });
+            resolve({ port: endpoint.port, url: endpoint.url });
           });
         });
 
         const process = await runtime.spawn('node', [`${runtime.workdir}/server.mjs`], { cwd: runtime.workdir });
         const output = (async () => {
-          const reader = process.output.getReader();
+          const reader = mergeProcessOutput(process).getReader();
           while (true) {
             const { value, done } = await reader.read();
             if (done) break;
