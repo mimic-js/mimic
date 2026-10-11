@@ -19,7 +19,7 @@ type CleanExternalConsumerEndpoint =
 const cleanExternalConsumerClaim = defineCompatibilityClaim({
   id: 'mimic-clean-external-consumer-v1',
   statement:
-    'A clean consumer installs the packed @mimic-js/mimic artifact and uses its public Mimic API to mount, spawn, publish, terminate, tear down, and reboot a generic Node HTTP server without fallback paths',
+    'A clean consumer installs the packed @mimic-js/runtime artifact and uses its public Mimic API to mount, spawn, publish, terminate, tear down, and reboot a generic Node HTTP server without fallback paths',
   target: {
     kind: 'runtime-capability',
     capability: 'mimic-clean-external-consumer'
@@ -44,7 +44,7 @@ test(cleanExternalConsumerClaim.statement, async ({ page }) => {
   const consumer = await startCleanExternalConsumer();
   try {
     expect(consumer.consumerRoot).not.toBe('');
-    expect(consumer.packedArtifact).toContain('mimic-js-mimic-');
+    expect(consumer.packedArtifact).toContain('mimic-js-runtime-');
     await page.goto(consumer.url, { waitUntil: 'domcontentloaded' });
     await expect.poll(() => page.evaluate(() => window.crossOriginIsolated)).toBe(true);
     await expect.poll(() => page.evaluate(() => Reflect.has(window, '__cleanExternalConsumer'))).toBe(true);

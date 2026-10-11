@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Mimic } from '@mimic-js/mimic';
+import type { Mimic } from '@mimic-js/runtime';
 import { EDITOR_THEME, monaco } from './monaco';
 
 const MAX_EDITABLE_BYTES = 2 * 1024 * 1024;

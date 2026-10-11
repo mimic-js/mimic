@@ -1,6 +1,6 @@
 name: Release
 
-# Versions, tags and publishes @mimic-js/mimic with `nx release`.
+# Versions, tags and publishes @mimic-js/runtime with `nx release`.
 # See docs/releasing.md for the end-to-end flow and the secrets it needs.
 
 on:
@@ -146,7 +146,7 @@ jobs:
           PUBLISHED: ${{ steps.version.outputs.publish }}
         run: |
           {
-            echo "### @mimic-js/mimic ${VERSION:-unknown}"
+            echo "### @mimic-js/runtime ${VERSION:-unknown}"
             echo "- tag at HEAD: $(git tag --points-at HEAD | tr '\n' ' ')"
             echo "- publish step ran: ${PUBLISHED:-false}"
           } >> "$GITHUB_STEP_SUMMARY"

@@ -1,12 +1,12 @@
 # API reference
 
-`Mimic` is the whole runtime API of `@mimic-js/mimic`: a virtual file system,
+`Mimic` is the whole runtime API of `@mimic-js/runtime`: a virtual file system,
 processes, and the URLs of the HTTP servers those processes start. The
-build-time entry `@mimic-js/mimic/vite` adds a Vite plugin and the response
+build-time entry `@mimic-js/runtime/vite` adds a Vite plugin and the response
 headers a page needs.
 
 ```ts
-import { Mimic, MimicProcessCrashError } from '@mimic-js/mimic';
+import { Mimic, MimicProcessCrashError } from '@mimic-js/runtime';
 import type {
   BootOptions,
   EmbedderPolicy,
@@ -17,7 +17,7 @@ import type {
   PublishedEndpoint,
   PublishedEndpointCollection,
   SpawnOptions
-} from '@mimic-js/mimic';
+} from '@mimic-js/runtime';
 ```
 
 **One container runs per page at a time.** `Mimic.boot()` rejects while
@@ -414,10 +414,10 @@ await container.fs.mount({
 });
 ```
 
-## @mimic-js/mimic/vite
+## @mimic-js/runtime/vite
 
 ```ts
-import { mimic, mimicHeaders, mimicHeadersFor, type EmbedderPolicy } from '@mimic-js/mimic/vite';
+import { mimic, mimicHeaders, mimicHeadersFor, type EmbedderPolicy } from '@mimic-js/runtime/vite';
 ```
 
 Build-time helpers for the server of the page. `vite` is an optional peer

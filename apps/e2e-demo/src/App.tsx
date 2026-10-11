@@ -13,8 +13,8 @@ import vanillaVite7PackageLock from '../../../packages/runtime/compatibility/fix
 import vanillaVite7Package from '../../../packages/runtime/compatibility/fixtures/vanilla-vite-7.3.6/package.json'
 import vuePackageLock from '../../../packages/runtime/compatibility/fixtures/vue-3-vite-6.4.3/package-lock.json'
 import vuePackage from '../../../packages/runtime/compatibility/fixtures/vue-3-vite-6.4.3/package.json'
-import { Mimic } from '@mimic-js/mimic'
-import type { MimicProcess, FileSystemTree } from '@mimic-js/mimic'
+import { Mimic } from '@mimic-js/runtime'
+import type { MimicProcess, FileSystemTree } from '@mimic-js/runtime'
 
 const decoder = new TextDecoder()
 

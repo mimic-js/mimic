@@ -32,7 +32,7 @@ on the `PATH` of the commands it starts, so the package scripts Nx runs use
 it too. The alternative is Corepack: a `packageManager` field in the root
 `package.json` and `ENABLE_EXPERIMENTAL_COREPACK=1` in the project.
 
-`nx run site:build` builds `@mimic-js/mimic` first (`^build`), then the site.
+`nx run site:build` builds `@mimic-js/runtime` first (`^build`), then the site.
 The site bundles the Monaco editor, whose build peaks above 3 GB of memory,
 so `NODE_OPTIONS` raises Node's heap limit; without it the build stops with
 "JavaScript heap out of memory". CI sets the same variable.

@@ -1,9 +1,9 @@
-# Releasing `@mimic-js/mimic`
+# Releasing `@mimic-js/runtime`
 
 Releases are made with `nx release`, configured under `release` in
 [`nx.json`](../nx.json), and run by the manually dispatched
 [`Release` workflow](../.github/workflows/release.yml). Only the `runtime`
-project (`packages/runtime`, published as `@mimic-js/mimic`) is released.
+project (`packages/runtime`, published as `@mimic-js/runtime`) is released.
 `apps/site` and `apps/e2e-demo` are private and never versioned or
 published.
 
@@ -87,7 +87,7 @@ history includes a breaking `feat!:` commit, so a plain run would go to 0.2.0
    - **first-release:** checked
 3. The run keeps the version at 0.1.0, creates `packages/runtime/CHANGELOG.md`,
    commits `chore(release): publish 0.1.0`, tags `v0.1.0`, pushes, creates the
-   GitHub release, and publishes `@mimic-js/mimic@0.1.0` with provenance.
+   GitHub release, and publishes `@mimic-js/runtime@0.1.0` with provenance.
 
 The first changelog entry covers every runtime-touching `feat`, `fix` and
 `perf` commit since the start of the repository, which is several hundred
@@ -147,7 +147,7 @@ Trusted publishing replaces `NPM_TOKEN` with a short-lived token that npm
 issues to this workflow alone. pnpm 11 exchanges the GitHub OIDC token for it
 on its own and adds provenance automatically.
 
-1. On npmjs.com, open `@mimic-js/mimic` → **Settings → Trusted Publisher**,
+1. On npmjs.com, open `@mimic-js/runtime` → **Settings → Trusted Publisher**,
    choose **GitHub Actions**, and enter organisation `mimic-js`, repository
    `mimic`, workflow filename `release.yml`. Leave the environment empty
    unless you add one to the job.

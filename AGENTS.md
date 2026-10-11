@@ -6,7 +6,7 @@ it too.
 
 ## Layout
 
-- `packages/runtime`: the published `@mimic-js/mimic` package (runtime source
+- `packages/runtime`: the published `@mimic-js/runtime` package (runtime source
   in `src/runtime`, tests in `tests/unit` and `tests/e2e`, build and check
   scripts in `scripts/`). Its `README.md` is the consumer guide.
 - `apps/`: consumers of the built package. `apps/site` is the site: the

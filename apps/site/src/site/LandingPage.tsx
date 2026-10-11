@@ -2,9 +2,9 @@ import { Link } from 'react-router';
 import { StackIcon } from './StackIcon';
 import { exampleTitle, playgroundStacks, tooling } from './stacks';
 
-const INSTALL = 'npm install @mimic-js/mimic';
+const INSTALL = 'npm install @mimic-js/runtime';
 
-const QUICK_START = `import { Mimic } from '@mimic-js/mimic';
+const QUICK_START = `import { Mimic } from '@mimic-js/runtime';
 
 const container = await Mimic.boot();
 

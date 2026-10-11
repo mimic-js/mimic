@@ -7,7 +7,7 @@
 ## Install
 
 ```sh
-npm install @mimic-js/mimic
+npm install @mimic-js/runtime
 ```
 
 The package is self-contained: the document that hosts the runtime, its
@@ -17,7 +17,7 @@ workers, its Service Worker and the SQLite WebAssembly binary are files under
 references on their own. It has no runtime dependencies.
 
 ```ts
-import { Mimic } from '@mimic-js/mimic';
+import { Mimic } from '@mimic-js/runtime';
 
 const container = await Mimic.boot();
 ```
@@ -75,7 +75,7 @@ const container = await Mimic.boot({ embedderPolicy: 'credentialless' });
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite';
-import { mimic } from '@mimic-js/mimic/vite';
+import { mimic } from '@mimic-js/runtime/vite';
 
 export default defineConfig({
   plugins: [mimic()]
@@ -115,7 +115,7 @@ Map the package name to its entry and serve `node_modules` as it is:
 
 ```html
 <script type="importmap">
-  { "imports": { "@mimic-js/mimic": "/node_modules/@mimic-js/mimic/dist/mimic.js" } }
+  { "imports": { "@mimic-js/runtime": "/node_modules/@mimic-js/runtime/dist/mimic.js" } }
 </script>
 ```
 
@@ -128,10 +128,10 @@ same two headers on the host that serves your application; applying them to
 every response is the simplest correct rule.
 
 For servers written in Node, the same headers are exported from
-`@mimic-js/mimic/vite`:
+`@mimic-js/runtime/vite`:
 
 ```ts
-import { mimicHeaders, mimicHeadersFor } from '@mimic-js/mimic/vite';
+import { mimicHeaders, mimicHeadersFor } from '@mimic-js/runtime/vite';
 
 // require-corp
 response.writeHead(200, { ...mimicHeaders, 'Content-Type': 'text/html' });

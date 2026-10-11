@@ -1,6 +1,6 @@
 import { defineConfig, loadEnv, type ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
-import { mimic } from '@mimic-js/mimic/vite';
+import { mimic } from '@mimic-js/runtime/vite';
 
 // GitHub serves repository archives without CORS headers, so the page reads
 // them through its own server. The root vercel.json rewrites the same path in

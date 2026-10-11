@@ -20,7 +20,7 @@ repository's own Vite configuration.
 ## Decision
 
 - **Two workspace projects.** `packages/runtime` is the published package
-  (`@mimic-js/mimic`) with its sources, claims, fixtures, architecture
+  (`@mimic-js/runtime`) with its sources, claims, fixtures, architecture
   policy and scripts; inside it the layout is unchanged, so `src/runtime`,
   `tests/e2e` and `scripts` mean what they meant before, relative to the
   package. `apps/docs` is the documentation application, which starts as the
@@ -37,7 +37,7 @@ repository's own Vite configuration.
   every packed script and every declaration reachable from a public types
   entry, and fails on an imported package that is not declared and on a
   declared dependency that nothing imports.
-- **One build-time entry: `@mimic-js/mimic/vite`.** `Mimic`
+- **One build-time entry: `@mimic-js/runtime/vite`.** `Mimic`
   remains the single runtime facade (ADR-0003). The Vite plugin is
   configuration a consumer's bundler loads in Node; it sends the required
   headers from the development and preview servers, excludes the package from

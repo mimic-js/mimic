@@ -58,7 +58,7 @@ export function mimic(
   return {
     name: 'mimic',
     config: () => ({
-      optimizeDeps: { exclude: ['@mimic-js/mimic'] },
+      optimizeDeps: { exclude: ['@mimic-js/runtime'] },
       server: { headers },
       preview: { headers }
     })

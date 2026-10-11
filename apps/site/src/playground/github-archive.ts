@@ -1,4 +1,4 @@
-import type { FileSystemTree } from '@mimic-js/mimic';
+import type { FileSystemTree } from '@mimic-js/runtime';
 
 export type Repository = {
   readonly owner: string;

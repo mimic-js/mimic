@@ -8,7 +8,7 @@
 <p align="center">Node.js programs, package managers and development servers, inside a browser tab.</p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@mimic-js/mimic"><img alt="npm" src="https://img.shields.io/npm/v/@mimic-js/mimic"></a>
+  <a href="https://www.npmjs.com/package/@mimic-js/runtime"><img alt="npm" src="https://img.shields.io/npm/v/@mimic-js/runtime"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <a href="https://github.com/mimic-js/mimic/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/mimic-js/mimic/actions/workflows/ci.yml/badge.svg"></a>
 </p>
@@ -73,11 +73,11 @@ features and claimed packages are in the ADRs and in [`packages/runtime/tests/e2
 ## Quick start
 
 ```sh
-npm install @mimic-js/mimic
+npm install @mimic-js/runtime
 ```
 
 ```ts
-import { Mimic } from '@mimic-js/mimic';
+import { Mimic } from '@mimic-js/runtime';
 
 const container = await Mimic.boot();
 
@@ -114,7 +114,7 @@ Cross-Origin-Embedder-Policy: require-corp   (or credentialless)
 plugin sends them from `vite dev` and `vite preview`:
 
 ```ts
-import { mimic } from '@mimic-js/mimic/vite';
+import { mimic } from '@mimic-js/runtime/vite';
 
 export default defineConfig({ plugins: [mimic()] });
 ```
@@ -135,7 +135,7 @@ use without a bundler, production hosting, and the preview origin.
 
 | Path | Contents |
 | --- | --- |
-| [`packages/runtime`](packages/runtime) | The published `@mimic-js/mimic` package, its unit tests and its Playwright Compatibility Claims |
+| [`packages/runtime`](packages/runtime) | The published `@mimic-js/runtime` package, its unit tests and its Playwright Compatibility Claims |
 | [`apps/site`](apps/site) | The site: landing page, documentation and playground |
 | [`apps/e2e-demo`](apps/e2e-demo) | The demo application the Playwright suite drives as the package's browser witness |
 | [`docs/`](docs) | ADRs, the roadmap, the compatibility evidence contract and dated research |

@@ -1,5 +1,5 @@
 import type { Terminal } from '@xterm/xterm';
-import type { Mimic, MimicProcess } from '@mimic-js/mimic';
+import type { Mimic, MimicProcess } from '@mimic-js/runtime';
 
 const encoder = new TextEncoder();
 const NEWLINE = 0x0a;

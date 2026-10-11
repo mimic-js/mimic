@@ -10,7 +10,7 @@
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
-    "@mimic-js/mimic": "workspace:*",
+    "@mimic-js/runtime": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

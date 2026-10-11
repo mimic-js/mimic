@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Mimic, PublishedEndpoint } from '@mimic-js/mimic';
+import type { Mimic, PublishedEndpoint } from '@mimic-js/runtime';
 
 /** The HTTP servers the container's processes are listening with. */
 export function usePublishedEndpoints(container: Mimic): readonly PublishedEndpoint[] {

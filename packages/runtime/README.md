@@ -1,11 +1,11 @@
-# @mimic-js/mimic
+# @mimic-js/runtime
 
 Runs Node.js programs, package managers and development servers inside a
 browser tab. `Mimic` is the whole public API: a virtual file system,
 processes, and the URLs of the HTTP servers those processes start.
 
 ```ts
-import { Mimic } from '@mimic-js/mimic';
+import { Mimic } from '@mimic-js/runtime';
 
 const container = await Mimic.boot();
 
@@ -181,7 +181,7 @@ tabs on the same preview origin share that origin's storage with each other.
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite';
-import { mimic } from '@mimic-js/mimic/vite';
+import { mimic } from '@mimic-js/runtime/vite';
 
 export default defineConfig({
   plugins: [mimic()]
@@ -219,7 +219,7 @@ Map the package name to its entry and serve `node_modules` as it is:
 
 ```html
 <script type="importmap">
-  { "imports": { "@mimic-js/mimic": "/node_modules/@mimic-js/mimic/dist/mimic.js" } }
+  { "imports": { "@mimic-js/runtime": "/node_modules/@mimic-js/runtime/dist/mimic.js" } }
 </script>
 ```
 
@@ -228,6 +228,6 @@ Map the package name to its entry and serve `node_modules` as it is:
 A development server's headers do not travel with the build. Configure the
 same two headers on the host that serves your application; applying them to
 every response is the simplest correct rule. The same headers are exported
-from `@mimic-js/mimic/vite` for servers written in Node:
+from `@mimic-js/runtime/vite` for servers written in Node:
 `mimicHeaders` for `require-corp`, and
 `mimicHeadersFor(policy)` for either policy.

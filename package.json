@@ -12,8 +12,8 @@
     "test:unit": "nx run runtime:test:unit",
     "test:e2e": "nx run runtime:test:e2e",
     "package:check": "nx run runtime:package:check",
-    "compatibility:matrix": "pnpm --filter @mimic-js/mimic run compatibility:matrix",
-    "compatibility:prefetch": "pnpm --filter @mimic-js/mimic run compatibility:prefetch",
+    "compatibility:matrix": "pnpm --filter @mimic-js/runtime run compatibility:matrix",
+    "compatibility:prefetch": "pnpm --filter @mimic-js/runtime run compatibility:prefetch",
     "release": "nx release",
     "release:dry-run": "nx release --dry-run"
   },

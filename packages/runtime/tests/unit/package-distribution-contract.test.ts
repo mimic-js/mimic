@@ -23,7 +23,7 @@ describe('package distribution contract', () => {
       scripts?: Record<string, string>;
     };
 
-    expect(appSource).toContain("from '@mimic-js/mimic'");
+    expect(appSource).toContain("from '@mimic-js/runtime'");
     expect(appSource).not.toContain("from './runtime'");
     expect(playwrightConfig).toContain(
       "command: 'pnpm build:package && pnpm exec vite"

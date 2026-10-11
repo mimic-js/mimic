@@ -11,7 +11,7 @@ import {
 const bundlerConsumerClaim = defineCompatibilityClaim({
   id: 'mimic-bundler-consumers-v1',
   statement:
-    'A consumer bundled by Vite or webpack 5 from the packed @mimic-js/mimic artifact boots the container, runs a Node HTTP server, loads its Published Endpoint, and opens a SQLite database',
+    'A consumer bundled by Vite or webpack 5 from the packed @mimic-js/runtime artifact boots the container, runs a Node HTTP server, loads its Published Endpoint, and opens a SQLite database',
   target: {
     kind: 'runtime-capability',
     capability: 'mimic-bundler-consumers'

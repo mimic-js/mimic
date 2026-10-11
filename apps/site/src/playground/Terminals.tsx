@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
-import type { Mimic } from '@mimic-js/mimic';
+import type { Mimic } from '@mimic-js/runtime';
 import { ShellSession } from './shell-session';
 
 type TerminalsProps = {

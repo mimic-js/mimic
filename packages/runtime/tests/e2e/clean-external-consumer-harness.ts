@@ -7,7 +7,7 @@ import { basename, extname, isAbsolute, join, relative, resolve } from 'node:pat
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 
-import type { Mimic } from '@mimic-js/mimic';
+import type { Mimic } from '@mimic-js/runtime';
 
 const runFile = promisify(execFile);
 const repositoryRoot = resolve(fileURLToPath(new URL('../..', import.meta.url)));
@@ -138,18 +138,18 @@ async function writeConsumerFiles(consumerRoot: string): Promise<void> {
   );
   await writeFile(
     join(consumerRoot, 'consumer.js'),
-    "import { Mimic } from '@mimic-js/mimic';\n\nwindow.__cleanExternalConsumer = Object.freeze({ Mimic });\n"
+    "import { Mimic } from '@mimic-js/runtime';\n\nwindow.__cleanExternalConsumer = Object.freeze({ Mimic });\n"
   );
 }
 
 async function writeConsumerIndex(consumerRoot: string): Promise<void> {
   const installedManifest: unknown = JSON.parse(
-    await readFile(join(consumerRoot, 'node_modules/@mimic-js/mimic/package.json'), 'utf8')
+    await readFile(join(consumerRoot, 'node_modules/@mimic-js/runtime/package.json'), 'utf8')
   );
   const browserEntry = publicBrowserEntry(installedManifest);
   const importMap = JSON.stringify({
     imports: {
-      '@mimic-js/mimic': `/node_modules/@mimic-js/mimic/${browserEntry.slice(2)}`
+      '@mimic-js/runtime': `/node_modules/@mimic-js/runtime/${browserEntry.slice(2)}`
     }
   });
   await writeFile(
@@ -160,7 +160,7 @@ async function writeConsumerIndex(consumerRoot: string): Promise<void> {
 
 function publicBrowserEntry(manifest: unknown): string {
   if (manifest === null || typeof manifest !== 'object' || Array.isArray(manifest)) {
-    throw new Error('Installed @mimic-js/mimic package manifest must be an object.');
+    throw new Error('Installed @mimic-js/runtime package manifest must be an object.');
   }
   const exportsField = Reflect.get(manifest, 'exports');
   const publicEntry =
@@ -172,18 +172,18 @@ function publicBrowserEntry(manifest: unknown): string {
       ? Reflect.get(publicEntry, 'browser')
       : undefined;
   if (typeof browserEntry !== 'string' || !browserEntry.startsWith('./')) {
-    throw new Error('Installed @mimic-js/mimic package must expose a relative public browser entry.');
+    throw new Error('Installed @mimic-js/runtime package must expose a relative public browser entry.');
   }
   return browserEntry;
 }
 
 async function assertExternalInstalledPackage(consumerRoot: string, canonicalRepositoryRoot: string): Promise<void> {
-  const installedPackageRoot = await realpath(join(consumerRoot, 'node_modules', '@mimic-js/mimic'));
+  const installedPackageRoot = await realpath(join(consumerRoot, 'node_modules', '@mimic-js/runtime'));
   if (isWithin(canonicalRepositoryRoot, installedPackageRoot)) {
-    throw new Error(`Clean consumer resolved @mimic-js/mimic inside the repository: ${installedPackageRoot}`);
+    throw new Error(`Clean consumer resolved @mimic-js/runtime inside the repository: ${installedPackageRoot}`);
   }
   if (!isWithin(consumerRoot, installedPackageRoot)) {
-    throw new Error(`Clean consumer resolved @mimic-js/mimic outside its temporary package: ${installedPackageRoot}`);
+    throw new Error(`Clean consumer resolved @mimic-js/runtime outside its temporary package: ${installedPackageRoot}`);
   }
 }
 
@@ -306,7 +306,7 @@ export type BundledConsumerHarness = CleanExternalConsumerHarness &
   }>;
 
 const consumerEntrySource =
-  "import { Mimic } from '@mimic-js/mimic';\n\nwindow.__cleanExternalConsumer = Object.freeze({ Mimic });\n";
+  "import { Mimic } from '@mimic-js/runtime';\n\nwindow.__cleanExternalConsumer = Object.freeze({ Mimic });\n";
 const consumerDocument = (script: string): string =>
   `<!doctype html><html><head><meta charset="utf-8"><title>Bundled Mimic consumer</title></head><body><main id="consumer-root">bundled consumer</main>${script}</body></html>\n`;
 
@@ -405,7 +405,7 @@ export async function startBundledConsumer(kind: BundledConsumerKind): Promise<B
       );
       await writeFile(
         join(canonicalConsumerRoot, 'vite.config.js'),
-        "import { mimic } from '@mimic-js/mimic/vite';\n\nexport default { plugins: [mimic()] };\n"
+        "import { mimic } from '@mimic-js/runtime/vite';\n\nexport default { plugins: [mimic()] };\n"
       );
       const vite = join(canonicalConsumerRoot, 'node_modules/vite/bin/vite.js');
       if (kind === 'vite-preview') {

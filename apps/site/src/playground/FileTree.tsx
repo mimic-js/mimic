@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Mimic } from '@mimic-js/mimic';
+import type { Mimic } from '@mimic-js/runtime';
 
 type Entry = {
   readonly name: string;

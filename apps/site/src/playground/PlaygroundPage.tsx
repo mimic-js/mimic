@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Mimic } from '@mimic-js/mimic';
+import { Mimic } from '@mimic-js/runtime';
 import { EditorPane } from './EditorPane';
 import { examples, exampleFromSearch, type Example } from './examples';
 import { FileTree } from './FileTree';
