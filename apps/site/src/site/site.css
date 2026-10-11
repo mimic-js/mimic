@@ -194,21 +194,35 @@
 .button-primary {
   border-color: var(--accent);
   background: var(--accent);
-  color: #0b0d12;
+  color: #14211c;
 }
 
 .button-primary:hover {
-  border-color: #9cc3ff;
-  background: #9cc3ff;
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
 }
 
 /* Landing */
 
 .hero {
+  position: relative;
   display: grid;
   justify-items: start;
   gap: 18px;
   padding: 72px 0 24px;
+}
+
+/* A faint lime glow behind the wordmark */
+.hero::before {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: -120px;
+  width: 640px;
+  height: 360px;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 9%, transparent), transparent);
+  content: "";
+  pointer-events: none;
 }
 
 .hero-wordmark {

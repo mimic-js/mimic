@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/logo/01-chameleon-hex-wordmark-dark.svg">
-    <img alt="Mimic" src="assets/logo/01-chameleon-hex-wordmark.svg" height="80">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo/mimic-wordmark-dark.svg">
+    <img alt="Mimic" src="assets/logo/mimic-wordmark.svg" height="80">
   </picture>
 </p>
 

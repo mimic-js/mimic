@@ -96,7 +96,7 @@ function TerminalView({ container, label, cwd, initialLine, onCommandFinished, i
       cursorBlink: true,
       fontFamily: 'ui-monospace, "SF Mono", Menlo, Consolas, monospace',
       fontSize: 13,
-      theme: { background: '#0b0d12', foreground: '#d7dbe4', cursor: '#d7dbe4' }
+      theme: { background: '#0a100d', foreground: '#e9f2e4', cursor: '#c8f169' }
     });
     const fit = new FitAddon();
     terminal.loadAddon(fit);

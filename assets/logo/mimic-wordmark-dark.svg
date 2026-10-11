@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 160" role="img" aria-label="Mimic">
+  <title>Mimic</title>
+  <g transform="translate(8 8) scale(0.72)"><circle cx="100" cy="100" r="88" fill="none" stroke="#C8F169" stroke-width="10"/><circle cx="106.3" cy="97.2" r="64" fill="none" stroke="#C8F169" stroke-width="10"/><circle cx="112.6" cy="94.4" r="40" fill="none" stroke="#C8F169" stroke-width="10"/><circle cx="118" cy="92" r="18" fill="#C8F169"/></g>
+  <g transform="translate(176 23) scale(1.1)"><g fill="none" stroke="#E9F2E4" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"><path d="M4 80V24L28 64L52 24V80"/><path d="M72 50V80"/><path d="M92 50V80M92 58A12 12 0 0 1 116 58V80M116 58A12 12 0 0 1 140 58V80"/><path d="M160 50V80"/><path d="M211 52.1A17 17 0 1 0 211 73.9"/></g><g fill="#C8F169"><circle cx="72" cy="31" r="6.5"/><circle cx="160" cy="31" r="6.5"/></g></g>
+</svg>

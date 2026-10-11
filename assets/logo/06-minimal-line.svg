@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Mimic — single-line chameleon">
-  <title>Mimic — single-line chameleon</title>
-  <g fill="none" stroke="#43A047" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M68 200A7 7 0 0 1 68 186A22 22 0 0 1 68 230A32 32 0 0 1 68 166C82 166 90 160 94 148C102 114 130 98 158 98C166 98 172 100 178 104C182 94 188 82 194 74C208 88 222 104 232 120C234 126 230 131 224 132C210 134 196 140 186 148C176 156 166 160 152 162C134 164 118 164 104 162"/>
-    <path d="M118 163L108 184L118 204M164 158L154 182L164 204M100 204H232"/>
-    <circle cx="202" cy="112" r="10"/>
-  </g>
-  <circle cx="203" cy="112" r="3.5" fill="#43A047"/>
-</svg>

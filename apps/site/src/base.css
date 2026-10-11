@@ -1,13 +1,14 @@
 :root {
-  --background: #0f1117;
-  --surface: #151821;
-  --surface-raised: #1c202b;
-  --terminal-background: #0b0d12;
-  --border: #262b38;
-  --text: #d7dbe4;
-  --text-muted: #8b93a5;
-  --accent: #6ea8fe;
-  --danger: #f38b8b;
+  --background: #0e1612;
+  --surface: #14211c;
+  --surface-raised: #1b2c25;
+  --terminal-background: #0a100d;
+  --border: #27392f;
+  --text: #e9f2e4;
+  --text-muted: #8fa396;
+  --accent: #c8f169;
+  --accent-strong: #d9f78c;
+  --danger: #f09a8a;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   color: var(--text);
