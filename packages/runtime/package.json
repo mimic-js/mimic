@@ -1,0 +1,105 @@
+{
+  "name": "@mimic-js/mimic",
+  "private": false,
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mimic-js/mimic.git",
+    "directory": "packages/runtime"
+  },
+  "homepage": "https://github.com/mimic-js/mimic",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "files": [
+    "dist/assets",
+    "dist/mimic.js",
+    "dist/mimic.js.map",
+    "dist/types",
+    "dist/vite",
+    "LICENSE",
+    "README.md"
+  ],
+  "types": "./dist/types/index.d.ts",
+  "module": "./dist/mimic.js",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "browser": "./dist/mimic.js",
+      "default": "./dist/mimic.js"
+    },
+    "./vite": {
+      "types": "./dist/vite/index.d.ts",
+      "default": "./dist/vite/index.js"
+    }
+  },
+  "nx": {
+    "name": "runtime",
+    "targets": {
+      "build:package": {
+        "dependsOn": [
+          "^build"
+        ],
+        "inputs": [
+          "production",
+          "^production"
+        ],
+        "outputs": [
+          "{projectRoot}/dist"
+        ],
+        "cache": true
+      },
+      "typecheck": {
+        "dependsOn": []
+      }
+    }
+  },
+  "scripts": {
+    "dev": "tsx scripts/build-runtime-assets.mjs && vite --host 0.0.0.0",
+    "build": "pnpm build:package",
+    "build:package": "tsx scripts/build-runtime-assets.mjs && vite build --config vite.package.config.ts && tsc --project tsconfig.package.json && tsc --project tsconfig.vite-plugin.json",
+    "typecheck": "tsc --project tsconfig.json && tsc --project tsconfig.node.json",
+    "package:check": "pnpm build:package && pnpm exec tsx scripts/check-package-distribution.ts",
+    "prepack": "pnpm package:check",
+    "test:unit": "vitest run --project unit",
+    "test:e2e": "playwright test --project browser-runtime",
+    "compatibility:matrix": "tsx scripts/compatibility-claim-matrix.ts",
+    "compatibility:prefetch": "tsx scripts/prefetch-compatibility-tarballs.ts",
+    "test:e2e:vite6-baseline": "playwright test tests/e2e/mimic-typescript-vite6.spec.ts tests/e2e/mimic-vite6-config.spec.ts tests/e2e/mimic-vite6-optimizer.spec.ts tests/e2e/mimic-react18.spec.ts tests/e2e/mimic-vue3.spec.ts tests/e2e/mimic-solid1.spec.ts tests/e2e/mimic-svelte5.spec.ts --project browser-runtime --grep-invert SSR --workers=1"
+  },
+  "peerDependencies": {
+    "vite": ">=5"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@babel/core": "7.29.7",
+    "@babel/parser": "7.29.7",
+    "@babel/plugin-transform-export-namespace-from": "7.29.7",
+    "@babel/plugin-transform-modules-systemjs": "7.29.7",
+    "@babel/preset-typescript": "7.29.7",
+    "@noble/hashes": "2.4.0",
+    "@playwright/test": "^1.61.1",
+    "brotli": "1.3.3",
+    "events": "3.3.0",
+    "fflate": "0.8.2",
+    "node-inspect-extracted": "3.0.2",
+    "node-sqlite3-wasm": "0.8.60",
+    "path-browserify": "1.0.1",
+    "playwright": "^1.61.1",
+    "punycode": "2.3.1",
+    "readable-stream": "4.7.0",
+    "semver": "7.8.5",
+    "string_decoder": "1.3.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.7.2",
+    "url": "0.11.4",
+    "vite": "^6.0.7",
+    "vitest": "^4.1.9"
+  }
+}

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mimic logo sheet</title>
+  <style>
+    :root { --ink: #14261A; --muted: #5b6b5f; --line: #dfe5df; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 32px; background: #f4f6f4; color: var(--ink);
+           font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    p.lede { margin: 0 0 24px; color: var(--muted); }
+    .variant { margin: 0 0 28px; }
+    h2 { margin: 0 0 10px; font-size: 15px; font-family: ui-monospace, Menlo, monospace; }
+    h2 span { margin-left: 10px; font: 13px system-ui, sans-serif; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: 180px 180px 1fr 1fr; gap: 12px; }
+    .tile { margin: 0; border: 1px solid var(--line); border-radius: 12px; padding: 16px 16px 8px; min-width: 0;
+             display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 190px; }
+    .tile.light { background: #ffffff; }
+    .tile.dark { background: #0f1117; border-color: #23262f; }
+    .tile img { display: block; }
+    .tile.mark img { width: 136px; height: 136px; }
+    .tile.wordmark img { width: 100%; max-width: 340px; height: auto; margin: auto 0; }
+    figcaption { margin-top: 8px; font: 11px ui-monospace, Menlo, monospace; color: var(--muted);
+                  text-align: center; overflow-wrap: anywhere; }
+    .tile.dark figcaption { color: #8b93a1; }
+    .extra { display: flex; gap: 12px; align-items: stretch; }
+    .extra .tile { width: 180px; }
+    @media (max-width: 900px) { body { padding: 16px; } .grid { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>Mimic — logo explorations</h1>
+  <p class="lede">Each variant: mark on white, mark on #0f1117, wordmark on white, dark wordmark on #0f1117.</p>
+    <section class="variant">
+      <h2>01-chameleon-hex<span>chameleon in a hexagon</span></h2>
+      <div class="grid">
+        <figure class="tile light mark"><img src="01-chameleon-hex.svg" alt="01-chameleon-hex.svg"><figcaption>01-chameleon-hex.svg</figcaption></figure>
+        <figure class="tile dark mark"><img src="01-chameleon-hex.svg" alt="01-chameleon-hex.svg"><figcaption>01-chameleon-hex.svg</figcaption></figure>
+        <figure class="tile light wordmark"><img src="01-chameleon-hex-wordmark.svg" alt="01-chameleon-hex-wordmark.svg"><figcaption>01-chameleon-hex-wordmark.svg</figcaption></figure>
+        <figure class="tile dark wordmark"><img src="01-chameleon-hex-wordmark-dark.svg" alt="01-chameleon-hex-wordmark-dark.svg"><figcaption>01-chameleon-hex-wordmark-dark.svg</figcaption></figure>
+      </div>
+    </section>
+    <section class="variant">
+      <h2>02-geometric-chameleon<span>low-poly chameleon head</span></h2>
+      <div class="grid">
+        <figure class="tile light mark"><img src="02-geometric-chameleon.svg" alt="02-geometric-chameleon.svg"><figcaption>02-geometric-chameleon.svg</figcaption></figure>
+        <figure class="tile dark mark"><img src="02-geometric-chameleon.svg" alt="02-geometric-chameleon.svg"><figcaption>02-geometric-chameleon.svg</figcaption></figure>
+        <figure class="tile light wordmark"><img src="02-geometric-chameleon-wordmark.svg" alt="02-geometric-chameleon-wordmark.svg"><figcaption>02-geometric-chameleon-wordmark.svg</figcaption></figure>
+        <figure class="tile dark wordmark"><img src="02-geometric-chameleon-wordmark-dark.svg" alt="02-geometric-chameleon-wordmark-dark.svg"><figcaption>02-geometric-chameleon-wordmark-dark.svg</figcaption></figure>
+      </div>
+    </section>
+    <section class="variant">
+      <h2>03-chameleon-curl<span>coiled chameleon</span></h2>
+      <div class="grid">
+        <figure class="tile light mark"><img src="03-chameleon-curl.svg" alt="03-chameleon-curl.svg"><figcaption>03-chameleon-curl.svg</figcaption></figure>
+        <figure class="tile dark mark"><img src="03-chameleon-curl.svg" alt="03-chameleon-curl.svg"><figcaption>03-chameleon-curl.svg</figcaption></figure>
+        <figure class="tile light wordmark"><img src="03-chameleon-curl-wordmark.svg" alt="03-chameleon-curl-wordmark.svg"><figcaption>03-chameleon-curl-wordmark.svg</figcaption></figure>
+        <figure class="tile dark wordmark"><img src="03-chameleon-curl-wordmark-dark.svg" alt="03-chameleon-curl-wordmark-dark.svg"><figcaption>03-chameleon-curl-wordmark-dark.svg</figcaption></figure>
+      </div>
+    </section>
+    <section class="variant">
+      <h2>04-eye-mark<span>chameleon turret eye</span></h2>
+      <div class="grid">
+        <figure class="tile light mark"><img src="04-eye-mark.svg" alt="04-eye-mark.svg"><figcaption>04-eye-mark.svg</figcaption></figure>
+        <figure class="tile dark mark"><img src="04-eye-mark.svg" alt="04-eye-mark.svg"><figcaption>04-eye-mark.svg</figcaption></figure>
+        <figure class="tile light wordmark"><img src="04-eye-mark-wordmark.svg" alt="04-eye-mark-wordmark.svg"><figcaption>04-eye-mark-wordmark.svg</figcaption></figure>
+        <figure class="tile dark wordmark"><img src="04-eye-mark-wordmark-dark.svg" alt="04-eye-mark-wordmark-dark.svg"><figcaption>04-eye-mark-wordmark-dark.svg</figcaption></figure>
+      </div>
+    </section>
+    <section class="variant">
+      <h2>05-terminal-chameleon<span>chameleon terminal prompt</span></h2>
+      <div class="grid">
+        <figure class="tile light mark"><img src="05-terminal-chameleon.svg" alt="05-terminal-chameleon.svg"><figcaption>05-terminal-chameleon.svg</figcaption></figure>
+        <figure class="tile dark mark"><img src="05-terminal-chameleon.svg" alt="05-terminal-chameleon.svg"><figcaption>05-terminal-chameleon.svg</figcaption></figure>
+        <figure class="tile light wordmark"><img src="05-terminal-chameleon-wordmark.svg" alt="05-terminal-chameleon-wordmark.svg"><figcaption>05-terminal-chameleon-wordmark.svg</figcaption></figure>
+        <figure class="tile dark wordmark"><img src="05-terminal-chameleon-wordmark-dark.svg" alt="05-terminal-chameleon-wordmark-dark.svg"><figcaption>05-terminal-chameleon-wordmark-dark.svg</figcaption></figure>
+      </div>
+    </section>
+    <section class="variant">
+      <h2>06-minimal-line<span>single-line chameleon</span></h2>
+      <div class="grid">
+        <figure class="tile light mark"><img src="06-minimal-line.svg" alt="06-minimal-line.svg"><figcaption>06-minimal-line.svg</figcaption></figure>
+        <figure class="tile dark mark"><img src="06-minimal-line.svg" alt="06-minimal-line.svg"><figcaption>06-minimal-line.svg</figcaption></figure>
+        <figure class="tile light wordmark"><img src="06-minimal-line-wordmark.svg" alt="06-minimal-line-wordmark.svg"><figcaption>06-minimal-line-wordmark.svg</figcaption></figure>
+        <figure class="tile dark wordmark"><img src="06-minimal-line-wordmark-dark.svg" alt="06-minimal-line-wordmark-dark.svg"><figcaption>06-minimal-line-wordmark-dark.svg</figcaption></figure>
+      </div>
+    </section>
+    <section class="variant">
+      <h2>06-minimal-line-mono<span>currentColor version for inline SVG (renders black as an &lt;img&gt;)</span></h2>
+      <div class="extra">
+        <figure class="tile light mark"><img src="06-minimal-line-mono.svg" alt="06-minimal-line-mono.svg"><figcaption>06-minimal-line-mono.svg</figcaption></figure>
+      </div>
+    </section>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 160" role="img" aria-label="Mimic">
+  <title>Mimic</title>
+  <g transform="translate(8 8) scale(0.5625)">
+  <g fill="none" stroke="#66BB6A" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M68 200A7 7 0 0 1 68 186A22 22 0 0 1 68 230A32 32 0 0 1 68 166C82 166 90 160 94 148C102 114 130 98 158 98C166 98 172 100 178 104C182 94 188 82 194 74C208 88 222 104 232 120C234 126 230 131 224 132C210 134 196 140 186 148C176 156 166 160 152 162C134 164 118 164 104 162"/>
+    <path d="M118 163L108 184L118 204M164 158L154 182L164 204M100 204H232"/>
+    <circle cx="202" cy="112" r="10"/>
+  </g>
+  <circle cx="203" cy="112" r="3.5" fill="#66BB6A"/>
+  </g>
+  <g transform="translate(178 20) scale(1.15)">
+    <g fill="none" stroke="#E8F5E9" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 80V24L28 64L52 24V80"/>
+      <path d="M72 50V80"/>
+      <path d="M92 50V80M92 58A12 12 0 0 1 116 58V80M116 58A12 12 0 0 1 140 58V80"/>
+      <path d="M160 50V80"/>
+      <path d="M211 52.1A17 17 0 1 0 211 73.9"/>
+    </g>
+    <g fill="#66BB6A"><circle cx="72" cy="31" r="6.5"/><circle cx="160" cy="31" r="6.5"/></g>
+  </g>
+</svg>

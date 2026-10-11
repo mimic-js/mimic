@@ -1,0 +1,24 @@
+{
+  "name": "mimic-workspace",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nx run site:dev",
+    "dev:playground": "nx run site:dev",
+    "dev:e2e-demo": "nx run e2e-demo:dev",
+    "build": "nx run-many -t build",
+    "typecheck": "nx run-many -t typecheck",
+    "test:build": "nx run-many -t build typecheck",
+    "test:unit": "nx run runtime:test:unit",
+    "test:e2e": "nx run runtime:test:e2e",
+    "package:check": "nx run runtime:package:check",
+    "compatibility:matrix": "pnpm --filter @mimic-js/mimic run compatibility:matrix",
+    "compatibility:prefetch": "pnpm --filter @mimic-js/mimic run compatibility:prefetch",
+    "release": "nx release",
+    "release:dry-run": "nx release --dry-run"
+  },
+  "devDependencies": {
+    "@nx/js": "23.2.1",
+    "nx": "^23.2.1"
+  }
+}

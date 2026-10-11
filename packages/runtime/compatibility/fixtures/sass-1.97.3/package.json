@@ -1,0 +1,9 @@
+{
+  "name": "sass-1-97-3-mimic-receipt",
+  "version": "0.0.0",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "sass": "1.97.3"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "rolldown-1-0-0-rc-4-mimic-receipt",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "rolldown": "1.0.0-rc.4"
+  }
+}

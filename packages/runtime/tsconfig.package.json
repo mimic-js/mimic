@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "outDir": "dist/types",
+    "rootDir": "src/runtime"
+  },
+  "include": ["src/runtime/**/*.ts", "src/vite-env.d.ts"],
+  "exclude": ["src/runtime/**/*.test.ts", "src/runtime/**/__tests__/**"]
+}

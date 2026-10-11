@@ -1,0 +1,5 @@
+{
+  "name": "archive-dependency",
+  "version": "1.2.3",
+  "main": "index.cjs"
+}

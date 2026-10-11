@@ -1,0 +1,15 @@
+{
+  "name": "webpack-5-108-4-compatibility-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "webpack --config webpack.config.cjs",
+    "watch": "webpack --watch --config webpack.config.cjs",
+    "serve": "webpack serve --config webpack.config.cjs"
+  },
+  "dependencies": {
+    "webpack": "5.108.4",
+    "webpack-cli": "6.0.1",
+    "webpack-dev-server": "5.2.2"
+  }
+}

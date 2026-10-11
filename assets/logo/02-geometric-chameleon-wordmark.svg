@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 160" role="img" aria-label="Mimic">
+  <title>Mimic</title>
+  <g transform="translate(8 8) scale(0.5625)">
+  <g>
+    <polygon points="62.1,195.3 66.9,211.7 75.8,198.2" fill="#1B5E20" stroke="#1B5E20" stroke-width="1" stroke-linejoin="round"/>
+    <polygon points="81.8,199.4 86.7,215.9 95.5,202.3" fill="#1B5E20" stroke="#1B5E20" stroke-width="1" stroke-linejoin="round"/>
+    <polygon points="101.6,203.6 106.4,220.0 115.3,206.5" fill="#1B5E20" stroke="#1B5E20" stroke-width="1" stroke-linejoin="round"/>
+    <polygon points="60,36 140,78 118,140" fill="#81C784" stroke="#81C784" stroke-width="1" stroke-linejoin="round"/>
+    <polygon points="60,36 118,140 34,124" fill="#4CAF50" stroke="#4CAF50" stroke-width="1" stroke-linejoin="round"/>
+    <polygon points="140,78 186,112 118,140" fill="#A5D6A7" stroke="#A5D6A7" stroke-width="1" stroke-linejoin="round"/>
+    <polygon points="186,112 226,132 156,168" fill="#66BB6A" stroke="#66BB6A" stroke-width="1" stroke-linejoin="round"/>
+    <polygon points="226,132 232,152 156,168" fill="#4CAF50" stroke="#4CAF50" stroke-width="1" stroke-linejoin="round"/>
+    <polygon points="118,140 186,112 156,168" fill="#3E9B4F" stroke="#3E9B4F" stroke-width="1" stroke-linejoin="round"/>
+    <polygon points="34,124 118,140 56,194" fill="#1B5E20" stroke="#1B5E20" stroke-width="1" stroke-linejoin="round"/>
+    <polygon points="56,194 118,140 156,168" fill="#2E7D32" stroke="#2E7D32" stroke-width="1" stroke-linejoin="round"/>
+    <polygon points="156,168 232,152 202,184" fill="#43A047" stroke="#43A047" stroke-width="1" stroke-linejoin="round"/>
+    <polygon points="56,194 156,168 132,210" fill="#1B5E20" stroke="#1B5E20" stroke-width="1" stroke-linejoin="round"/>
+    <polygon points="156,168 202,184 132,210" fill="#2E7D32" stroke="#2E7D32" stroke-width="1" stroke-linejoin="round"/>
+  </g>
+  <path d="M229 150L156 168Q140 172 132 182" fill="none" stroke="#123F17" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="118" cy="140" r="31" fill="#1B5E20"/>
+  <circle cx="121" cy="139" r="25" fill="#66BB6A"/>
+  <circle cx="125" cy="138" r="17" fill="#FFB300"/>
+  <circle cx="128" cy="138" r="8.5" fill="#0B1F0F"/>
+  <circle cx="123" cy="133" r="3.2" fill="#FFFFFF" opacity="0.9"/>
+  </g>
+  <g transform="translate(178 20) scale(1.15)">
+    <g fill="none" stroke="#14261A" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 80V24L28 64L52 24V80"/>
+      <path d="M72 50V80"/>
+      <path d="M92 50V80M92 58A12 12 0 0 1 116 58V80M116 58A12 12 0 0 1 140 58V80"/>
+      <path d="M160 50V80"/>
+      <path d="M211 52.1A17 17 0 1 0 211 73.9"/>
+    </g>
+    <g fill="#3E9B4F"><circle cx="72" cy="31" r="6.5"/><circle cx="160" cy="31" r="6.5"/></g>
+  </g>
+</svg>

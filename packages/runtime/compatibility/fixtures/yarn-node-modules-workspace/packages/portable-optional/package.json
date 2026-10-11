@@ -1,0 +1,13 @@
+{
+  "name": "portable-optional",
+  "version": "1.0.0",
+  "os": [
+    "browser"
+  ],
+  "cpu": [
+    "wasm32"
+  ],
+  "bin": {
+    "portable": "bin/portable.cjs"
+  }
+}

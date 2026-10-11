@@ -1,0 +1,469 @@
+/* The landing page, the documentation and the 404 page */
+
+.site {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.site-header-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  width: min(1080px, 100% - 32px);
+  min-height: 52px;
+  margin: 0 auto;
+  padding: 8px 0;
+}
+
+.site-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-left: auto;
+}
+
+.site-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.site-nav a:hover,
+.site-nav a.active {
+  color: var(--text);
+}
+
+.site-main {
+  flex: 1;
+  width: min(1080px, 100% - 32px);
+  margin: 0 auto;
+}
+
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  width: min(1080px, 100% - 32px);
+  margin: 64px auto 0;
+  padding: 20px 0 28px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.site code,
+.site pre {
+  font-family: var(--mono);
+}
+
+.site :not(pre) > code {
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  font-size: 0.88em;
+  overflow-wrap: break-word;
+}
+
+.code-block,
+.docs-content pre {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--terminal-background);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.code-block code,
+.docs-content pre code {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: inherit;
+}
+
+/* Buttons */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-weight: 550;
+  text-decoration: none;
+}
+
+.button:hover {
+  border-color: var(--text-muted);
+}
+
+.button-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #0b0d12;
+}
+
+.button-primary:hover {
+  border-color: #9cc3ff;
+  background: #9cc3ff;
+}
+
+/* Landing */
+
+.hero {
+  display: grid;
+  justify-items: start;
+  gap: 18px;
+  padding: 72px 0 24px;
+}
+
+.hero-wordmark {
+  margin: 0;
+  line-height: 0;
+}
+
+.hero-wordmark img {
+  width: min(330px, 80vw);
+  height: auto;
+}
+
+.hero-lede {
+  max-width: 34em;
+  margin: 0;
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1.4;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.experimental-note {
+  max-width: 46em;
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  border: 1px solid #6b5a2a;
+  border-radius: 8px;
+  background: rgb(229 192 123 / 6%);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.experimental-note strong {
+  color: #e5c07b;
+}
+
+.landing-section {
+  padding-top: 56px;
+}
+
+.landing-section h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.section-lede {
+  max-width: 46em;
+  margin: 0 0 20px;
+  color: var(--text-muted);
+}
+
+.stack-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.stack-group {
+  padding: 14px 16px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.stack-group h3,
+.how-grid h3 {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+a.chip:hover,
+a.chip:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+
+.chip-static {
+  background: none;
+  color: var(--text-muted);
+}
+
+.how-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.how-grid li {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.how-grid h3 {
+  color: var(--text);
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.how-grid p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Documentation */
+
+.docs-layout {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 48px;
+  padding-top: 40px;
+}
+
+.docs-sidebar {
+  position: sticky;
+  top: 76px;
+  display: grid;
+  align-self: start;
+  gap: 2px;
+}
+
+.docs-sidebar a {
+  padding: 5px 10px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.docs-sidebar a:hover {
+  color: var(--text);
+}
+
+.docs-sidebar a.active {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.docs-content {
+  max-width: 780px;
+}
+
+.docs-content > :first-child {
+  margin-top: 0;
+}
+
+.docs-content h1 {
+  margin: 0 0 16px;
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.docs-content h2 {
+  margin: 48px 0 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.docs-content h3 {
+  margin: 32px 0 8px;
+  font-size: 17px;
+}
+
+.docs-content h4 {
+  margin: 24px 0 8px;
+  font-size: 15px;
+}
+
+.docs-content h1,
+.docs-content h2,
+.docs-content h3,
+.docs-content h4 {
+  scroll-margin-top: 72px;
+}
+
+.heading-anchor {
+  color: inherit;
+  text-decoration: none;
+}
+
+.heading-anchor:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--text-muted);
+}
+
+.docs-content p,
+.docs-content ul,
+.docs-content ol {
+  margin: 0 0 16px;
+}
+
+.docs-content ul,
+.docs-content ol {
+  padding-left: 22px;
+}
+
+.docs-content ul {
+  list-style: disc;
+}
+
+.docs-content li + li {
+  margin-top: 4px;
+}
+
+.docs-content blockquote {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border: 1px solid #6b5a2a;
+  border-radius: 8px;
+  background: rgb(229 192 123 / 6%);
+}
+
+.docs-content blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.docs-content table {
+  display: block;
+  width: 100%;
+  margin: 0 0 16px;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.docs-content th,
+.docs-content td {
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.docs-content th {
+  background: var(--surface);
+}
+
+/* A table's leading columns name things; they keep their names on one line. */
+.docs-content td:not(:last-child) code {
+  white-space: nowrap;
+}
+
+/* 404 */
+
+.not-found {
+  padding-top: 96px;
+}
+
+.not-found-code {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--mono);
+}
+
+.not-found h1 {
+  margin: 0 0 8px;
+}
+
+@media (max-width: 720px) {
+  .hero {
+    padding-top: 40px;
+  }
+
+  .hero-lede {
+    font-size: 19px;
+  }
+
+  .stack-groups,
+  .how-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .docs-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    padding-top: 20px;
+  }
+
+  .docs-sidebar {
+    position: static;
+    display: flex;
+    gap: 6px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .docs-content h1 {
+    font-size: 26px;
+  }
+}

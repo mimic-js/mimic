@@ -1,0 +1,11 @@
+{
+  "name": "prettier-mimic-receipt",
+  "version": "0.0.0",
+  "type": "commonjs",
+  "scripts": {
+    "format-file": "prettier --write fixture.js"
+  },
+  "dependencies": {
+    "prettier": "3.9.5"
+  }
+}

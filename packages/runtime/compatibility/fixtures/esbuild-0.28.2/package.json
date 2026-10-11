@@ -1,0 +1,10 @@
+{
+  "name": "compatibility-esbuild-0-28-2",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.18.0",
+  "dependencies": {
+    "esbuild": "0.28.2"
+  }
+}

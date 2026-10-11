@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Todos</title>
+  </head>
+  <body>
+    <h1>Todos</h1>
+    <form id="new-todo">
+      <input name="title" placeholder="What needs doing?" required />
+      <button>Add</button>
+    </form>
+    <ul id="todos"></ul>
+    <script type="module">
+      const list = document.querySelector('#todos');
+      const api = new URL('api/todos', document.baseURI);
+
+      async function render() {
+        const todos = await (await fetch(api)).json();
+        list.replaceChildren(
+          ...todos.map((todo) => Object.assign(document.createElement('li'), { textContent: todo.title }))
+        );
+      }
+
+      document.querySelector('#new-todo').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const title = new FormData(event.target).get('title');
+        await fetch(api, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ title })
+        });
+        event.target.reset();
+        await render();
+      });
+
+      await render();
+    </script>
+  </body>
+</html>

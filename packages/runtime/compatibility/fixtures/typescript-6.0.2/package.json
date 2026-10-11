@@ -1,0 +1,12 @@
+{
+  "name": "typescript6-mimic-receipt",
+  "version": "0.0.0",
+  "type": "commonjs",
+  "scripts": {
+    "typecheck": "tsc6 --project tsconfig.json",
+    "watch": "tsc6 --watch --project tsconfig.watch.json --preserveWatchOutput"
+  },
+  "dependencies": {
+    "@typescript/typescript6": "6.0.2"
+  }
+}

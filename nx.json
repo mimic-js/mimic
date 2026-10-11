@@ -1,0 +1,107 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "namedInputs": {
+    "sharedGlobals": [
+      "{workspaceRoot}/pnpm-lock.yaml",
+      "{workspaceRoot}/nx.json"
+    ],
+    "default": [
+      "{projectRoot}/**/*",
+      "sharedGlobals"
+    ],
+    "production": [
+      "default",
+      "!{projectRoot}/tests/**/*",
+      "!{projectRoot}/**/*.test.ts",
+      "!{projectRoot}/playwright.config.ts",
+      "!{projectRoot}/vitest.config.ts"
+    ]
+  },
+  "targetDefaults": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "production",
+        "^production"
+      ],
+      "outputs": [
+        "{projectRoot}/dist"
+      ],
+      "cache": true
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "default",
+        "^production"
+      ],
+      "cache": true
+    },
+    "dev": {
+      "dependsOn": [
+        "^build"
+      ],
+      "continuous": true
+    },
+    "preview": {
+      "dependsOn": [
+        "build"
+      ],
+      "continuous": true
+    },
+    "nx-release-publish": {
+      "options": {
+        "access": "public"
+      }
+    }
+  },
+  "tui": {
+    "enabled": false
+  },
+  "neverConnectToCloud": true,
+  "analytics": false,
+  "release": {
+    "projects": [
+      "runtime"
+    ],
+    "projectsRelationship": "fixed",
+    "releaseTag": {
+      "pattern": "v{version}"
+    },
+    "version": {
+      "conventionalCommits": true,
+      "fallbackCurrentVersionResolver": "disk",
+      "adjustSemverBumpsForZeroMajorVersion": true
+    },
+    "conventionalCommits": {
+      "useCommitScope": false,
+      "types": {
+        "perf": {
+          "semverBump": "patch"
+        }
+      }
+    },
+    "changelog": {
+      "workspaceChangelog": false,
+      "projectChangelogs": {
+        "file": "{projectRoot}/CHANGELOG.md",
+        "createRelease": "github",
+        "renderOptions": {
+          "authors": true,
+          "commitReferences": true,
+          "versionTitleDate": true
+        }
+      }
+    },
+    "git": {
+      "commit": true,
+      "commitMessage": "chore(release): publish {version}",
+      "tag": true,
+      "push": true
+    }
+  }
+}

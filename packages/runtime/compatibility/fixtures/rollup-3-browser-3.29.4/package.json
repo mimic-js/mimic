@@ -1,0 +1,8 @@
+{
+  "name": "rollup-3-browser-3-29-4-compatibility-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@rollup/browser": "3.29.4"
+  }
+}

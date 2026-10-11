@@ -1,0 +1,1 @@
+export const shared = 'SHARED_CHUNK_MARKER';

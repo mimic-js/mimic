@@ -1,0 +1,15 @@
+{
+  "name": "npm-11-18-exact-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@11.18.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "dependencies": {
+    "esbuild": "0.25.12"
+  },
+  "scripts": {
+    "verify": "npm run --workspace @workspace/tool verify"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "yarn-pnp-zipfs-compatibility",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "yarn@4.17.1",
+  "dependencies": {
+    "is-odd": "3.0.1"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@workspace/tool",
+  "version": "1.0.0",
+  "bin": {
+    "workspace-tool": "bin/workspace-tool.cjs"
+  },
+  "peerDependencies": {
+    "is-number": "^6.0.0"
+  },
+  "dependencies": {
+    "is-odd": "3.0.1"
+  },
+  "scripts": {
+    "postinstall": "node scripts/verify.cjs",
+    "verify": "node scripts/verify.cjs"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "ws-compatibility-proof",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "ws": "8.21.0"
+  }
+}

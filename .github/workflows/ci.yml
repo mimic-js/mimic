@@ -1,0 +1,132 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: build / typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run test:build
+
+  unit:
+    name: unit contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run test:unit
+
+  compatibility-matrix:
+    name: discover compatibility matrix
+    if: github.event_name == 'pull_request' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - id: matrix
+        env:
+          COMPATIBILITY_BASELINE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+        run: pnpm run compatibility:matrix -- --github-output
+
+  compatibility-shard:
+    name: compatibility / ${{ matrix.shard }}
+    needs: [build, unit, compatibility-matrix]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/runtime
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJSON(needs.compatibility-matrix.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      # Publisher tarballs and install layers are the same for every shard.
+      - uses: actions/cache@v4
+        with:
+          path: packages/runtime/.cache
+          key: compatibility-cache-${{ hashFiles('packages/runtime/compatibility/fixtures/**/package-lock.json') }}-${{ matrix.shard }}
+          restore-keys: |
+            compatibility-cache-${{ hashFiles('packages/runtime/compatibility/fixtures/**/package-lock.json') }}-
+            compatibility-cache-
+      - run: pnpm run compatibility:prefetch
+      - name: Report Compatibility Claims
+        run: |
+          echo '### Compatibility Claims in this shard: ${{ matrix.claimIds }}' >> "$GITHUB_STEP_SUMMARY"
+      # The nightly run proves every frozen install; other runs restore install layers.
+      - run: pnpm exec playwright test ${{ matrix.specs }} --project browser-runtime --workers=1
+        env:
+          COMPATIBILITY_INSTALL_LAYERS: ${{ github.event_name == 'schedule' && '0' || '1' }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.shard }}
+          path: |
+            packages/runtime/playwright-report/
+            packages/runtime/test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  compatibility-required:
+    name: required compatibility matrix
+    if: always() && (github.event_name == 'pull_request' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    needs: [build, unit, compatibility-matrix, compatibility-shard]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every Compatibility Claim shard
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+          UNIT_RESULT: ${{ needs.unit.result }}
+          MATRIX_RESULT: ${{ needs.compatibility-matrix.result }}
+          SHARD_RESULT: ${{ needs.compatibility-shard.result }}
+        run: |
+          if [[ "$BUILD_RESULT" != success || "$UNIT_RESULT" != success || "$MATRIX_RESULT" != success || "$SHARD_RESULT" != success ]]; then
+            echo '::error::Compatibility matrix did not complete successfully'
+            exit 1
+          fi

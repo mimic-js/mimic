@@ -1,0 +1,11 @@
+{
+  "name": "pnpm-exact-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.11.0",
+  "dependencies": {
+    "@workspace/tool": "workspace:*",
+    "is-number": "6.0.0",
+    "is-odd": "3.0.1"
+  }
+}

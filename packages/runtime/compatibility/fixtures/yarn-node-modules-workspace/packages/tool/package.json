@@ -1,0 +1,15 @@
+{
+  "name": "@workspace/tool",
+  "version": "1.0.0",
+  "scripts": {
+    "verify": "helper lifecycle && portable && node scripts/verify.cjs"
+  },
+  "dependencies": {
+    "@workspace/dependency": "workspace:*",
+    "actual-helper": "workspace:*",
+    "peer-provider": "workspace:*"
+  },
+  "optionalDependencies": {
+    "portable-optional": "workspace:*"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "bookmarks",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@koa/bodyparser": "6.1.0",
+    "@koa/router": "15.7.0",
+    "koa": "3.2.1",
+    "koa-static": "5.0.0"
+  }
+}

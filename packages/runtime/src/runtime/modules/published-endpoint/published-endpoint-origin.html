@@ -1,0 +1,91 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mimic endpoint origin</title>
+<script>
+  // The endpoint origin document (ADR-0044). When Published Endpoints are
+  // served from an origin per port, the Runtime Host document loads this
+  // document in a hidden frame from each such origin: a document of another
+  // origin can neither register a Service Worker there nor post to it. This
+  // document registers the worker for the whole origin, forwards the host's
+  // `host-connect` message to it, and relays the worker's `host-lost` back.
+  // The opener names itself in the `host` query parameter and the worker
+  // script, which a bundler may have hashed, in `worker`; only that origin is
+  // answered, and only a script beside this document is registered.
+  const parameters = new URLSearchParams(location.search);
+  const host = parameters.get('host');
+  const worker = parameters.get('worker');
+  const reply = (message) => {
+    try {
+      if (host) parent.postMessage(message, host);
+    } catch {
+      // An opener that named no origin gets no answer.
+    }
+  };
+  const fail = (error) =>
+    reply({ type: 'published-endpoint:origin-failed', message: error && error.message ? error.message : String(error) });
+  const whenState = (serviceWorker, states) =>
+    new Promise((resolve, reject) => {
+      const check = () => {
+        if (states.includes(serviceWorker.state)) {
+          serviceWorker.removeEventListener('statechange', check);
+          resolve();
+        } else if (serviceWorker.state === 'redundant') {
+          serviceWorker.removeEventListener('statechange', check);
+          reject(new Error('Published Endpoint Service Worker became redundant before activation.'));
+        }
+      };
+      serviceWorker.addEventListener('statechange', check);
+      check();
+    });
+  (async () => {
+    let hostOrigin;
+    try {
+      hostOrigin = new URL(host).origin;
+    } catch {
+      hostOrigin = undefined;
+    }
+    if (!host || hostOrigin !== host) {
+      throw new Error("The endpoint origin document needs its opener's origin as its host query parameter.");
+    }
+    const directory = new URL('./', location.href);
+    const workerUrl = new URL(worker || '', location.href);
+    if (workerUrl.origin !== location.origin || !workerUrl.pathname.startsWith(directory.pathname)) {
+      throw new Error(`The Service Worker script must lie in ${directory.pathname}, not at ${workerUrl.href}.`);
+    }
+    if (!('serviceWorker' in navigator)) {
+      throw new Error('Service Workers are required for Published Endpoint routing.');
+    }
+    let registration;
+    try {
+      registration = await navigator.serviceWorker.register(workerUrl.href, { scope: '/', updateViaCache: 'none' });
+    } catch (error) {
+      throw new Error(
+        `${location.origin} cannot register the Published Endpoint Service Worker for its root: serve ${workerUrl.pathname} ` +
+          `with the "Service-Worker-Allowed: /" header (${error && error.message ? error.message : String(error)}).`
+      );
+    }
+    await registration.update();
+    for (const pending of [registration.installing, registration.waiting]) {
+      if (!pending) continue;
+      await whenState(pending, ['installed', 'activated']);
+      if (pending.state !== 'activated') {
+        pending.postMessage({ type: 'SKIP_WAITING' });
+        await whenState(pending, ['activated']);
+      }
+    }
+    const active = registration.active;
+    if (!active) throw new Error('Published Endpoint Service Worker registration has no active worker.');
+    await whenState(active, ['activated']);
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'published-endpoint:host-lost') reply(event.data);
+    });
+    addEventListener('message', (event) => {
+      if (event.origin !== host || event.source !== parent) return;
+      const data = event.data;
+      if (data && data.type === 'published-endpoint:host-connect' && event.ports[0]) {
+        (registration.active || active).postMessage(data, [event.ports[0]]);
+      }
+    });
+    reply({ type: 'published-endpoint:origin-ready' });
+  })().catch(fail);
+</script>

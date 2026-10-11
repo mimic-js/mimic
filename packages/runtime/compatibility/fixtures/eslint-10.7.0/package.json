@@ -1,0 +1,11 @@
+{
+  "name": "eslint-mimic-receipt",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint fixture.js ignored.js"
+  },
+  "dependencies": {
+    "eslint": "10.7.0"
+  }
+}

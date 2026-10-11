@@ -1,0 +1,11 @@
+import pc from 'picocolors';
+import './workflow.css';
+type RenderTarget = HTMLElement;
+const root = document.querySelector<RenderTarget>('#root');
+if (root === null) throw new Error('TypeScript workflow root is unavailable');
+root.innerHTML = `<main class="workflow-card"><h1>${pc.green("TypeScript compatibility claim rendered")}</h1><p data-framework>TypeScript source</p><button type="button" data-workflow-increment>Increment state</button><output data-workflow-state>0</output></main>`;
+const increment = root.querySelector<HTMLButtonElement>('[data-workflow-increment]');
+const state = root.querySelector<HTMLOutputElement>('[data-workflow-state]');
+if (increment === null || state === null) throw new Error('TypeScript workflow state controls are unavailable');
+increment.addEventListener('click', () => { state.textContent = String(Number(state.textContent) + 1); });
+if (import.meta.hot) import.meta.hot.accept();

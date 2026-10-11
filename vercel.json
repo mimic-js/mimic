@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npx --yes pnpm@11.7.0 install --frozen-lockfile",
+  "buildCommand": "npx --yes pnpm@11.7.0 nx run site:build",
+  "outputDirectory": "apps/site/dist",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
+        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "cross-origin" },
+        { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/github-archive/:path*", "destination": "https://codeload.github.com/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

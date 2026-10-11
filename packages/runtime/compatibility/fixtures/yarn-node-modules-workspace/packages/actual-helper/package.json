@@ -1,0 +1,10 @@
+{
+  "name": "actual-helper",
+  "version": "2.4.0",
+  "bin": {
+    "helper": "bin/helper.cjs"
+  },
+  "peerDependencies": {
+    "peer-provider": "^3.0.0"
+  }
+}

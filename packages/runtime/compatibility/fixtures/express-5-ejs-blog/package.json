@@ -1,0 +1,20 @@
+{
+  "name": "blog",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "compression": "1.8.2",
+    "cookie-parser": "1.4.7",
+    "dotenv": "18.0.5",
+    "ejs": "6.0.1",
+    "express": "5.2.1",
+    "express-session": "1.19.0",
+    "helmet": "8.3.0",
+    "morgan": "1.12.1",
+    "multer": "2.4.0"
+  }
+}

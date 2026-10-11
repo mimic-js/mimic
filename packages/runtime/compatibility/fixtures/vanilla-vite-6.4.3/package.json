@@ -1,0 +1,14 @@
+{
+  "name": "browser-vite-vanilla-demo",
+  "version": "0.0.0",
+  "private": true,
+  "license": "ISC",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0"
+  },
+  "dependencies": {
+    "picocolors": "1.1.1",
+    "vite": "6.4.3"
+  }
+}

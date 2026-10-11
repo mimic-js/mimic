@@ -1,0 +1,9 @@
+{
+  "name": "napi-crc32-1-10-8-mimic-receipt",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@node-rs/crc32": "1.10.8"
+  }
+}

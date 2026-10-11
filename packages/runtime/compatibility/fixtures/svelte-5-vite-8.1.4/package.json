@@ -1,0 +1,15 @@
+{
+  "name": "browser-svelte-vite-8-demo",
+  "version": "0.0.0",
+  "private": true,
+  "license": "ISC",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0"
+  },
+  "dependencies": {
+    "@sveltejs/vite-plugin-svelte": "7.3.0",
+    "svelte": "5.56.10",
+    "vite": "8.1.4"
+  }
+}

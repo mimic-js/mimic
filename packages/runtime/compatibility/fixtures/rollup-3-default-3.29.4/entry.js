@@ -1,0 +1,1 @@
+import { shared } from './shared.js'; export const answer = shared + 2; document.body.textContent = `Rollup 3 default CLI output: ${answer}`; export async function loadLazy() { return import('./lazy.js'); }

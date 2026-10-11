@@ -1,0 +1,65 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mimic runtime host</title>
+<script type="module">
+  // The Runtime Host document (ADR-0033). The embedding page loads it in a
+  // hidden frame from the origin that serves the endpoints, so that the
+  // Runtime Host worker, its process workers and the Service Worker all
+  // belong to that origin. The page names itself in the `host` query
+  // parameter; only that origin is answered, and only its boot message, with
+  // the asset manifest and the page's port, is accepted.
+  const host = new URLSearchParams(location.search).get('host');
+  const reply = (message) => {
+    if (host) parent.postMessage(message, host);
+  };
+  const fail = (error) =>
+    reply({ type: 'runtime-host:failed', message: error && error.message ? error.message : String(error) });
+  try {
+    let hostOrigin;
+    try {
+      hostOrigin = new URL(host).origin;
+    } catch {
+      hostOrigin = undefined;
+    }
+    if (!host || hostOrigin !== host) throw new Error("The Runtime Host document needs the embedding page's origin as its host query parameter.");
+    if (!crossOriginIsolated) {
+      throw new Error(
+        `The Runtime Host document on ${location.origin} is not cross-origin isolated: serve it with ` +
+          '"Cross-Origin-Embedder-Policy" and let the embedding page delegate the "cross-origin-isolated" permission.'
+      );
+    }
+    addEventListener('message', async (event) => {
+      if (event.origin !== host || event.source !== parent) return;
+      const data = event.data;
+      if (!data || data.type !== 'runtime-host:boot' || !event.ports[0]) return;
+      try {
+        const assets = data.assets;
+        if (!assets || typeof assets !== 'object') throw new Error('The boot message names no assets.');
+        for (const [name, url] of Object.entries(assets)) {
+          if (typeof url !== 'string' || new URL(url).origin !== location.origin) {
+            throw new Error(`The asset ${name} is not on this origin: ${String(url)}`);
+          }
+        }
+        const { startRuntimeHostDocument } = await import(/* @vite-ignore */ assets['runtime-host-document.js']);
+        const runtime = await startRuntimeHostDocument({
+          assets,
+          epochId: data.epochId,
+          embedderPolicy: data.embedderPolicy,
+          previewOrigin: typeof data.previewOrigin === 'string' ? data.previewOrigin : undefined,
+          hostOrigin: host,
+          page: event.ports[0]
+        });
+        addEventListener('pagehide', () => {
+          runtime.dispose();
+          reply({ type: 'runtime-host:unloaded' });
+        });
+        reply({ type: 'runtime-host:started' });
+      } catch (error) {
+        fail(error);
+      }
+    }, { once: true });
+    reply({ type: 'runtime-host:ready' });
+  } catch (error) {
+    fail(error);
+  }
+</script>

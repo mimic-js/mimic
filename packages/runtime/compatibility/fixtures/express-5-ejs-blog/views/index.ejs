@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Blog</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Blog</h1>
+    <% if (user) { %>
+      <p id="greeting">Signed in as <%= user %></p>
+      <form method="post" action="posts">
+        <input name="title" placeholder="Title" required />
+        <textarea name="body" placeholder="Body" required></textarea>
+        <button>Publish</button>
+      </form>
+    <% } else { %>
+      <form method="post" action="login">
+        <input name="username" placeholder="Username" required />
+        <button>Sign in</button>
+      </form>
+    <% } %>
+    <% for (const post of posts) { %>
+      <article>
+        <h2><%= post.title %></h2>
+        <p><%= post.body %></p>
+        <small>by <%= post.author %></small>
+      </article>
+    <% } %>
+  </body>
+</html>

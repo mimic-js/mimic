@@ -1,0 +1,16 @@
+{
+  "name": "notes-prisma",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "prisma generate",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@prisma/client": "7.10.0"
+  },
+  "devDependencies": {
+    "prisma": "7.10.0"
+  }
+}

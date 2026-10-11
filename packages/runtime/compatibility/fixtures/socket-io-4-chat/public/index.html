@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Chat</title>
+  </head>
+  <body>
+    <h1>Chat</h1>
+    <p id="status">connecting</p>
+    <ul id="messages"></ul>
+    <form id="composer">
+      <input name="text" placeholder="Message" autocomplete="off" required />
+      <button>Send</button>
+    </form>
+    <script src="socket.io/socket.io.js"></script>
+    <script>
+      const base = new URL('.', document.baseURI);
+      const socket = io(base.origin, { path: `${base.pathname}socket.io` });
+      const messages = document.querySelector('#messages');
+      const append = (text) => messages.append(Object.assign(document.createElement('li'), { textContent: text }));
+
+      socket.on('connect', () => {
+        document.querySelector('#status').textContent = `connected via ${socket.io.engine.transport.name}`;
+        socket.emit('join', 'guest');
+      });
+      socket.io.engine.on('upgrade', (transport) => {
+        document.querySelector('#status').textContent = `connected via ${transport.name}`;
+      });
+      socket.on('system', (text) => append(`* ${text}`));
+      socket.on('message', (message) => append(`${message.from}: ${message.text}`));
+
+      document.querySelector('#composer').addEventListener('submit', (event) => {
+        event.preventDefault();
+        socket.emit('message', new FormData(event.target).get('text'));
+        event.target.reset();
+      });
+    </script>
+  </body>
+</html>

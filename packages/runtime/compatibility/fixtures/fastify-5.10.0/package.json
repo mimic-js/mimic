@@ -1,0 +1,9 @@
+{
+  "name": "fastify-compatibility-proof",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "fastify": "5.10.0"
+  }
+}

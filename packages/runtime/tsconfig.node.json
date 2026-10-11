@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "noEmit": true
+  },
+  "include": [
+    "vite.config.ts",
+    "vite.package.config.ts",
+    "vite.node-compatibility.ts",
+    "src/vite",
+    "scripts/runtime-host-assets.ts"
+  ]
+}

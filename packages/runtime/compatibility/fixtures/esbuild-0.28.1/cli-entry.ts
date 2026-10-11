@@ -1,0 +1,1 @@
+export const cliMarker = 'ESBUILD_0281_CLI_MARKER';

@@ -1,0 +1,9 @@
+{
+  "name": "compatibility-rollup-4-native-request-4-62-4",
+  "version": "0.0.0",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "rollup": "4.62.4"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "inventory",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "13.0.3",
+    "drizzle-orm": "0.45.3",
+    "express": "5.2.1"
+  }
+}

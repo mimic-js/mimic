@@ -1,0 +1,9 @@
+node_modules
+dist
+*.tsbuildinfo
+.cache/
+.nx/
+playwright-report/
+test-results/
+generated/
+apps/site/demo-pool/pool.json

@@ -1,0 +1,1 @@
+export const serviceMarker = 'ESBUILD_0281_SERVICE_MARKER';

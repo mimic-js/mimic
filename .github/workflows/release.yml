@@ -1,0 +1,149 @@
+name: Release
+
+# Versions, tags and publishes @mimic-js/mimic with `nx release`.
+# See docs/releasing.md for the end-to-end flow and the secrets it needs.
+
+on:
+  workflow_dispatch:
+    inputs:
+      specifier:
+        description: 'Version specifier: patch, minor, major, prerelease, or an exact version such as 0.1.0. Leave empty to derive it from conventional commits.'
+        required: false
+        default: ''
+        type: string
+      first-release:
+        description: 'First release: no v* tag and no npm package exist yet (use with specifier 0.1.0).'
+        required: false
+        default: false
+        type: boolean
+      publish-only:
+        description: 'Skip versioning and only publish the version already tagged at the head of main (to retry a failed publish).'
+        required: false
+        default: false
+        type: boolean
+
+# Two releases must never race for the same version, tag or push.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: version, tag and publish
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      # Push the release commit and tag, and create the GitHub release.
+      contents: write
+      # npm provenance (and npm trusted publishing) need a GitHub OIDC token.
+      id-token: write
+    env:
+      # Used by `nx release` to create the GitHub release. RELEASE_TOKEN is only
+      # needed when branch protection on main rejects pushes from GITHUB_TOKEN.
+      GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history and tags: the current version is resolved from the
+          # latest v* tag and the changelog from the commits since it.
+          fetch-depth: 0
+          fetch-tags: true
+          # The token `git push` uses for the release commit and tag.
+          token: ${{ secrets.RELEASE_TOKEN || github.token }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          # Writes an .npmrc that reads the token from NODE_AUTH_TOKEN.
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+
+      - name: Validate inputs
+        env:
+          SPECIFIER: ${{ inputs.specifier }}
+        run: |
+          if [[ ! "$SPECIFIER" =~ ^((pre)?(patch|minor|major)|prerelease|[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)?$ ]]; then
+            echo "::error::Invalid specifier '$SPECIFIER'"
+            exit 1
+          fi
+
+      - name: Build and verify the package
+        run: |
+          pnpm run test:build
+          pnpm run test:unit
+          pnpm run package:check
+
+      - name: Configure git identity
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      # Bumps packages/runtime/package.json (or keeps it, for an exact version
+      # equal to the one on disk), writes packages/runtime/CHANGELOG.md, commits
+      # `chore(release): publish <version>`, tags v<version>, pushes the commit
+      # and tag to main (`git push --follow-tags --atomic`) and creates the
+      # GitHub release. Publishing is a separate step below.
+      - name: Version, changelog, tag, push and GitHub release
+        if: inputs.publish-only != true
+        env:
+          SPECIFIER: ${{ inputs.specifier }}
+          FIRST_RELEASE: ${{ inputs.first-release }}
+        run: |
+          args=(--skip-publish)
+          if [[ -n "$SPECIFIER" ]]; then args=("$SPECIFIER" "${args[@]}"); fi
+          if [[ "$FIRST_RELEASE" == 'true' ]]; then args+=(--first-release); fi
+          pnpm exec nx release "${args[@]}"
+
+      - name: Resolve the version to publish
+        id: version
+        run: |
+          version="$(node -p "require('./packages/runtime/package.json').version")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # Publish only what a release tag at HEAD vouches for. When conventional
+          # commits found nothing to release, `nx release` creates no tag.
+          if git tag --points-at HEAD | grep -qx "v$version"; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No v$version tag at HEAD, nothing to publish"
+          fi
+          # A prerelease must not move the `latest` dist-tag.
+          if [[ "$version" == *-* ]]; then
+            echo "dist-tag=next" >> "$GITHUB_OUTPUT"
+          else
+            echo "dist-tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        if: steps.version.outputs.publish == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # nx publishes with `pnpm publish`, and pnpm 11 reads its settings
+          # from PNPM_CONFIG_* variables only; NPM_CONFIG_PROVENANCE is kept
+          # for any npm CLI invoked along the way.
+          PNPM_CONFIG_PROVENANCE: 'true'
+          NPM_CONFIG_PROVENANCE: 'true'
+          FIRST_RELEASE: ${{ inputs.first-release }}
+          DIST_TAG: ${{ steps.version.outputs.dist-tag }}
+        run: |
+          args=(--tag "$DIST_TAG")
+          if [[ "$FIRST_RELEASE" == 'true' ]]; then args+=(--first-release); fi
+          pnpm exec nx release publish "${args[@]}"
+
+      - name: Summary
+        if: always()
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          PUBLISHED: ${{ steps.version.outputs.publish }}
+        run: |
+          {
+            echo "### @mimic-js/mimic ${VERSION:-unknown}"
+            echo "- tag at HEAD: $(git tag --points-at HEAD | tr '\n' ' ')"
+            echo "- publish step ran: ${PUBLISHED:-false}"
+          } >> "$GITHUB_STEP_SUMMARY"

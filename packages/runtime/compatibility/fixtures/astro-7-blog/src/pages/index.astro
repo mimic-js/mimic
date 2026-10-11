@@ -1,0 +1,13 @@
+---
+import PostLink from '../components/PostLink.astro';
+import Base from '../layouts/Base.astro';
+
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+---
+
+<Base title="Astro blog">
+  <h1>Latest posts</h1>
+  <ul>
+    {posts.map((post) => <PostLink href={post.url} title={post.frontmatter.title} />)}
+  </ul>
+</Base>
