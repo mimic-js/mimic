@@ -121,7 +121,7 @@ test(nodeProcessClaim.statement, async ({ page }) => {
       'group',
       '  inside',
       'true function 1 80 24',
-      'number string string 127 browser wasm32',
+      'number string string 127 linux wasm32',
       ''
     ].join('\n')
   });

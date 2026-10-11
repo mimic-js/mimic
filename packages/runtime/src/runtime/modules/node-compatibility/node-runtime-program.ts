@@ -618,7 +618,10 @@ function createProcessRuntimeGlobal(
     value: runtimePerformance,
     writable: true
   });
-  Object.assign(runtimeGlobal, {
+  // Defined, not assigned: an assignment reaches a setter the host's global has
+  // for the name (Node's global `process` is an accessor), which would replace
+  // the host's own `process` with this one and outlive the process.
+  for (const [name, value] of Object.entries({
     process,
     console: runtimeConsole,
     setTimeout: eventLoop.setTimeout,
@@ -630,7 +633,9 @@ function createProcessRuntimeGlobal(
     queueMicrotask: eventLoop.queueMicrotask,
     // The browser collects on its own schedule; the function exists for code that calls it.
     ...(options.exposeGc ? { gc: () => undefined } : {})
-  });
+  })) {
+    Object.defineProperty(runtimeGlobal, name, { configurable: true, enumerable: true, value, writable: true });
+  }
   // `util.promisify(setTimeout)` is `timers/promises`' setTimeout, as in Node
   // (close-with-grace waits that way).
   const promised = createTimersPromisesBuiltin(runtimeGlobal) as Record<'setTimeout' | 'setImmediate', unknown>;

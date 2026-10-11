@@ -593,14 +593,28 @@ describe('process and console', () => {
         "turn('entry');",
         "setTimeout(() => turn('timer'), 0);",
         "setImmediate(() => turn('immediate'));",
-        "setTimeout(() => console.log(order.join(' ')), 20);"
+        // Printed once the loop has nothing left to run, so no timer races the three turns.
+        "process.on('exit', () => console.log(order.join(' ')));"
       ].join('\n')
     });
 
     expect(run.exitCode, run.stderr).toBe(0);
+    expect(run.stdout.trim().split(' ')).toHaveLength(9);
     for (const turn of ['entry', 'timer', 'immediate']) {
       expect(run.stdout).toContain(`${turn}:tick ${turn}:nested-tick ${turn}:promise`);
     }
+  });
+
+  test("leaves the host's own process global in place", async () => {
+    // Node's global `process` is an accessor; assigning the program's process
+    // through it replaced the test worker's, and Vitest, restoring
+    // `process.nextTick` a tick late, then gave the next program the previous
+    // one's nextTick, whose cancelled loop drops what it is given (issue #3).
+    const hostProcess = globalThis.process;
+    const run = await runNode(['a.cjs'], { '/home/project/a.cjs': 'process.nextTick(() => console.log(process.pid));' });
+
+    expect(run).toEqual({ exitCode: 0, stdout: '1\n', stderr: '' });
+    expect(globalThis.process).toBe(hostProcess);
   });
 
   test('process.exit runs exit listeners with the exit code and keeps output written before it', async () => {
