@@ -1,3 +1,18 @@
+## 0.1.1 (2026-10-13)
+
+### 🚀 Features
+
+- **site:** the landing's positioning, an FAQ and share metadata ([2cbc934](https://github.com/mimic-js/mimic/commit/2cbc934))
+
+### 🩹 Fixes
+
+- **runtime:** a published WebSocket's Origin pairs with its Host ([7718f25](https://github.com/mimic-js/mimic/commit/7718f25))
+- **runtime:** a published WebSocket carries the Host localhost:<port> ([c41a724](https://github.com/mimic-js/mimic/commit/c41a724))
+
+### ❤️ Thank You
+
+- Artem Mangilev
+
 ## 0.1.0 (2026-10-11)
 
 ### 🚀 Features
