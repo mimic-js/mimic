@@ -5,7 +5,7 @@ import { e2ePort } from './browser-runtime-helpers';
 const endpointOriginClaim = defineCompatibilityClaim({
   id: 'published-endpoint-origin-per-port-v1',
   statement:
-    'With a wildcard preview origin each Published Endpoint is served from the root of an origin of its own, so a client-side router sees the path its server sees and a reload at a nested path renders it, while endpoints.fetch(), redirects, the Cookie Jar and loopback requests keep working',
+    'With a wildcard preview origin each Published Endpoint is served from the root of an origin of its own, so a client-side router sees the path its server sees and a reload at a nested path renders it, while endpoints.fetch(), redirects, the Cookie Jar and loopback requests keep working and its HTTP requests and WebSockets carry the Host localhost:<port>',
   target: {
     kind: 'runtime-capability',
     capability: 'published-endpoint-origin-per-port'
@@ -84,6 +84,12 @@ http.createServer((request, response) => {
   }
   response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
   response.end(page);
+}).on('upgrade', (request, socket) => {
+  // Answers with the Host the handshake carried, which a server such as
+  // Vite's HMR socket checks against the hosts it allows.
+  const payload = Buffer.from(\`host:\${request.headers.host}\`);
+  socket.write('HTTP/1.1 101 Switching Protocols\\r\\nConnection: Upgrade\\r\\nUpgrade: websocket\\r\\n\\r\\n');
+  socket.write(Buffer.concat([Buffer.from([0x81, payload.length]), payload]));
 }).listen(${ROUTER_PORT});
 http.createServer((request, response) => {
   response.writeHead(200, { 'content-type': 'text/plain' });
@@ -204,7 +210,16 @@ test(endpointOriginClaim.statement, async ({ page }) => {
     }
     const own = await fetch('/api/path?from=frame');
     const loopback = await fetch(`http://localhost:${apiPort}/hello?from=frame`);
+    const socketText = await new Promise<string>((resolve) => {
+      const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/socket`);
+      socket.addEventListener('message', (event) => {
+        resolve(String(event.data));
+        socket.close();
+      });
+      socket.addEventListener('error', () => resolve('error'));
+    });
     return {
+      socketText,
       origin: window.location.origin,
       ownScript: document.documentElement.dataset.ownScript,
       parentDocumentReachable,
@@ -218,6 +233,8 @@ test(endpointOriginClaim.statement, async ({ page }) => {
   expect(inFrame.ownScript).toBe('loaded');
   expect(inFrame.parentDocumentReachable).toBe(false);
   expect(inFrame.ownText).toBe(`path:/api/path?from=frame;host:localhost:${ROUTER_PORT};cookie:session=abc`);
+  // A WebSocket of the document carries the same Host as its HTTP requests, not the preview origin's hostname.
+  expect(inFrame.socketText).toBe(`host:localhost:${ROUTER_PORT}`);
   // A document's request to another loopback port of its container reaches that port (ADR-0037).
   expect(inFrame.loopbackText).toBe(`hello from ${API_PORT}:/hello?from=frame;origin:http://localhost:${ROUTER_PORT}`);
   expect(inFrame.pageCookieVisible).toBe(false);
