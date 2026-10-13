@@ -240,11 +240,12 @@ export function installPublishedEndpointDocumentWebSocketProgram(
         ['sec-websocket-key', webSocketKey()],
         ['sec-websocket-version', '13']
       ];
-      // A loopback socket is cross-origin to the document's logical origin.
-      if (route.loopbackPort !== undefined) {
+      // A socket to a loopback port, or to a host other than the document's,
+      // carries the document's logical origin, which pairs with the Host
+      // above: webpack-dev-server refuses an Origin whose hostname differs
+      // from the Host's, and the preview origin's is never localhost.
+      if (route.loopbackPort !== undefined || parsed.host !== window.location.host) {
         headers.push(['origin', `${route.endpoint.protocol}://localhost:${route.endpoint.address.port}`]);
-      } else if (parsed.host !== window.location.host) {
-        headers.push(['origin', window.location.origin]);
       }
       if (this.#requestedProtocols.length > 0) headers.push(['sec-websocket-protocol', this.#requestedProtocols.join(', ')]);
       let stream: MessageStream;

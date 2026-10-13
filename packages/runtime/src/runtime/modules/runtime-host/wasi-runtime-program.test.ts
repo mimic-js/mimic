@@ -543,17 +543,19 @@ describe('WASI Execution Preview1 host', () => {
 
     expect(wasi.fd_read(fd, 64, 1, 72)).toBe(0);
     expect(view.getUint32(72, true)).toBe(perCallReadLimit);
-    expect(new Uint8Array(memory.buffer, target, perCallReadLimit)).toEqual(
-      source.subarray(0, perCallReadLimit)
-    );
+    // Buffer.compare: toEqual walks a mebibyte element by element, which takes
+    // seconds on a CI runner and timed the test out.
+    expect(
+      Buffer.compare(new Uint8Array(memory.buffer, target, perCallReadLimit), source.subarray(0, perCallReadLimit))
+    ).toBe(0);
     expect(wasi.fd_tell(fd, 80)).toBe(0);
     expect(view.getBigUint64(80, true)).toBe(BigInt(perCallReadLimit));
 
     expect(wasi.fd_pread(fd, 64, 1, 16n, 72)).toBe(0);
     expect(view.getUint32(72, true)).toBe(perCallReadLimit);
-    expect(new Uint8Array(memory.buffer, target, perCallReadLimit)).toEqual(
-      source.subarray(16, 16 + perCallReadLimit)
-    );
+    expect(
+      Buffer.compare(new Uint8Array(memory.buffer, target, perCallReadLimit), source.subarray(16, 16 + perCallReadLimit))
+    ).toBe(0);
     expect(wasi.fd_tell(fd, 80)).toBe(0);
     expect(view.getBigUint64(80, true)).toBe(BigInt(perCallReadLimit));
 
