@@ -4,7 +4,7 @@ import { test } from './compatibility-test';
 const publishedEndpointWebSocketClaim = defineCompatibilityClaim({
   id: 'published-endpoint-websocket-publication-v1',
   statement:
-    'Mimic routes document WebSockets through revisioned Published Endpoint routes and Virtual Network',
+    'Mimic routes document WebSockets through revisioned Published Endpoint routes and Virtual Network, with the Host localhost:<port> a server checks on its handshake',
   target: {
     kind: 'runtime-capability',
     capability: 'published-endpoint-websocket-publication'
@@ -258,6 +258,9 @@ const failedRequests: string[] = [];
   }
   if (!result.result.heading.includes('Published Endpoint WebSocket works')) {
     throw new Error(`published endpoint WebSocket did not update the iframe DOM: ${JSON.stringify(result.result)}`);
+  }
+  if (diagnostics.includes('generic-upgrade-refused-host')) {
+    throw new Error(`published endpoint WebSocket did not carry the Host localhost:5173:\n${diagnostics}`);
   }
   if (
     !diagnostics.includes('generic-upgrade /echo?kind=generic published-endpoint') ||
@@ -831,6 +834,12 @@ const server = http.createServer((request, response) => {
 });
 
 server.on('upgrade', (request, socket, head) => {
+  // As Vite's HMR socket does, a handshake whose Host is not the server's own is refused.
+  if (request.headers.host !== 'localhost:5173') {
+    console.log('generic-upgrade-refused-host', request.headers.host);
+    socket.destroy();
+    return;
+  }
   console.log('generic-upgrade', request.url, request.headers['sec-websocket-protocol'] || 'none');
   if (request.url === '/reject?kind=generic') {
     socket.write([

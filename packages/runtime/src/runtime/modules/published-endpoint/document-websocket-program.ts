@@ -231,7 +231,10 @@ export function installPublishedEndpointDocumentWebSocketProgram(
       this.#hostTimer = setTimeout(() => this.#failConnection(), HOST_ANSWER_TIMEOUT_MS);
       const parsed = new URL(this.#url, window.location.href);
       const headers: [string, string][] = [
-        ['host', parsed.host],
+        // The host the server would see on a developer machine, as a published
+        // HTTP request carries: servers that check it, such as Vite's HMR
+        // socket, refuse the preview origin's hostname.
+        ['host', `localhost:${route.loopbackPort ?? route.endpoint.address.port}`],
         ['connection', 'Upgrade'],
         ['upgrade', 'websocket'],
         ['sec-websocket-key', webSocketKey()],
